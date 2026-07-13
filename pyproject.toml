@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmmoflp-nuclear-siting"
+version = "0.1.0"
+description = "Studio computazionale del CMMOFLP applicato alla localizzazione di centrali nucleari."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Valerio Torac" },
+  { name = "Ali Shalby" }
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,68 @@
+{
+  "name": "toy_instance_01",
+  "p": 2,
+  "communities": [
+    {
+      "id": "c1",
+      "x": 10.0,
+      "y": 15.0,
+      "demand": 20.0
+    },
+    {
+      "id": "c2",
+      "x": 20.0,
+      "y": 40.0,
+      "demand": 25.0
+    },
+    {
+      "id": "c3",
+      "x": 35.0,
+      "y": 25.0,
+      "demand": 15.0
+    },
+    {
+      "id": "c4",
+      "x": 50.0,
+      "y": 60.0,
+      "demand": 20.0
+    },
+    {
+      "id": "c5",
+      "x": 65.0,
+      "y": 30.0,
+      "demand": 20.0
+    }
+  ],
+  "sites": [
+    {
+      "id": "s1",
+      "x": 5.0,
+      "y": 70.0,
+      "capacity": 55.0
+    },
+    {
+      "id": "s2",
+      "x": 30.0,
+      "y": 10.0,
+      "capacity": 60.0
+    },
+    {
+      "id": "s3",
+      "x": 55.0,
+      "y": 75.0,
+      "capacity": 50.0
+    },
+    {
+      "id": "s4",
+      "x": 80.0,
+      "y": 20.0,
+      "capacity": 60.0
+    }
+  ],
+  "metadata": {
+    "distribution": "manual",
+    "capacity_level": "test",
+    "seed": null,
+    "description": "Piccola istanza controllabile manualmente."
+  }
+}

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: "CMMOFLP Nuclear Siting"
+message: "Citare questo repository indicando gli autori e la versione utilizzata."
+type: software
+authors:
+  - family-names: "Torac"
+    given-names: "Valerio"
+  - family-names: "Shalby"
+    given-names: "Ali"
+version: 0.1.0

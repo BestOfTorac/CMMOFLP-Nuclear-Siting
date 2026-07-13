@@ -1,0 +1,24 @@
+experiment_name: pilot
+time_limit_seconds: 300
+instances_per_class: 3
+heuristic_repetitions: 3
+base_seed: 42
+
+sizes:
+  - name: tiny
+    communities: 10
+    candidate_sites: 6
+    plants_to_open: 2
+  - name: small
+    communities: 30
+    candidate_sites: 10
+    plants_to_open: 2
+
+distributions: [uniform, clustered]
+
+capacity_levels:
+  loose: 1.50
+  medium: 1.20
+  tight: 1.05
+
+methods: [compact_mip, threshold_exact, greedy, local_search]

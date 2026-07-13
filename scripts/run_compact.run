@@ -1,0 +1,40 @@
+# Esecuzione del modello compatto sulla toy instance
+
+reset;
+
+model models/compact.mod;
+data instances/test/toy_instance_01.dat;
+
+# Solver principale previsto per il progetto.
+# Se Gurobi non è disponibile, sostituire "gurobi" con "highs".
+option solver gurobi;
+
+solve;
+
+printf "\n=== RISULTATO DEL MODELLO COMPATTO ===\n";
+printf "Valore obiettivo z = %.4f\n", z;
+
+printf "\nCentrali aperte:\n";
+for {j in SITES: y[j] > 0.5} {
+    printf "  %s  safety = %.4f  capacity = %.2f\n",
+        j, safety[j], capacity[j];
+}
+
+printf "\nAssegnamenti:\n";
+for {i in COMMUNITIES, j in SITES: x[i,j] > 0.5} {
+    printf "  %s -> %s  demand = %.2f\n",
+        i, j, demand[i];
+}
+
+printf "\nCarico delle centrali aperte:\n";
+for {j in SITES: y[j] > 0.5} {
+    printf "  %s  load = %.2f / %.2f\n",
+        j,
+        sum {i in COMMUNITIES} demand[i] * x[i,j],
+        capacity[j];
+}
+
+printf "\nValori di sicurezza di tutti i siti:\n";
+for {j in SITES} {
+    printf "  %s  safety = %.4f\n", j, safety[j];
+}

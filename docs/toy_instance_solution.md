@@ -31,9 +31,9 @@ L'istanza contiene:
 
 La domanda totale è:
 
-$$
+```math
 Q = 20+25+15+20+20=100.
-$$
+```
 
 ---
 
@@ -48,9 +48,9 @@ $$
 
 Devono essere selezionati esattamente:
 
-$$
+```math
 p=2
-$$
+```
 
 siti candidati.
 
@@ -60,11 +60,9 @@ siti candidati.
 
 La distanza tra la comunità $i$ e il sito candidato $j$ è calcolata mediante la distanza euclidea:
 
-$$
-d_{ij}
-=
-\sqrt{(x_i-x_j)^2+(y_i-y_j)^2}.
-$$
+```math
+d_{ij}=\sqrt{(x_i-x_j)^2+(y_i-y_j)^2}.
+```
 
 La matrice delle distanze è:
 
@@ -82,9 +80,9 @@ La matrice delle distanze è:
 
 Per ogni sito candidato $j$ definiamo:
 
-$$
+```math
 r_j=\min_{i\in I}d_{ij}.
-$$
+```
 
 Il valore $r_j$ rappresenta la distanza tra il sito $j$ e la comunità ad esso più vicina.
 
@@ -99,13 +97,10 @@ Il sito individualmente più sicuro è quindi `s1`.
 
 Tuttavia, devono essere costruite due centrali. Il valore di una soluzione costituita dall'insieme di siti aperti $S$ è:
 
-$$
-z(S)
-=
-\min_{j\in S}r_j
-=
-\min_{\substack{i\in I\\j\in S}}d_{ij}.
-$$
+```math
+z(S)=\min_{j\in S}r_j
+=\min_{\substack{i\in I\\j\in S}}d_{ij}.
+```
 
 ---
 
@@ -122,21 +117,17 @@ $$
 
 La coppia che garantisce la distanza minima maggiore è:
 
-$$
+```math
 S^*=\{s1,s4\}.
-$$
+```
 
 Il suo valore è:
 
-$$
+```math
 z(S^*)=\min\{r_{s1},r_{s4}\}
-$$
-
-e quindi:
-
-$$
-z(S^*)=\min\{33.5410,18.0278\}=18.0278.
-$$
+=\min\{33.5410,18.0278\}
+=18.0278.
+```
 
 ---
 
@@ -146,29 +137,29 @@ Poiché devono essere selezionati due siti, il valore della soluzione non può e
 
 I valori ordinati in senso decrescente sono:
 
-$$
+```math
 33.5410,\quad18.0278,\quad15.8114,\quad15.8114.
-$$
+```
 
 Pertanto:
 
-$$
+```math
 z^*\le18.0278.
-$$
+```
 
 La coppia $\{s1,s4\}$ raggiunge esattamente tale valore ed è compatibile con i vincoli di capacità.
 
 Di conseguenza:
 
-$$
+```math
 \boxed{z^*=18.0278}
-$$
+```
 
 e:
 
-$$
+```math
 \boxed{S^*=\{s1,s4\}}.
-$$
+```
 
 ---
 
@@ -186,27 +177,27 @@ Una possibile assegnazione è:
 
 Il carico della centrale `s1` è:
 
-$$
+```math
 L_{s1}=20+25=45.
-$$
+```
 
 La sua capacità è 55, quindi:
 
-$$
+```math
 45\le55.
-$$
+```
 
 Il carico della centrale `s4` è:
 
-$$
+```math
 L_{s4}=15+20+20=55.
-$$
+```
 
 La sua capacità è 60, quindi:
 
-$$
+```math
 55\le60.
-$$
+```
 
 Tutte le comunità sono assegnate a una sola centrale e tutti i vincoli di capacità sono rispettati.
 
@@ -216,22 +207,19 @@ Tutte le comunità sono assegnate a una sola centrale e tutti i vincoli di capac
 
 Il valore della soluzione è determinato dalla distanza tra la comunità `c5` e il sito `s4`:
 
-$$
+```math
 d_{c5,s4}
-=
-\sqrt{(65-80)^2+(30-20)^2}.
-$$
+=\sqrt{(65-80)^2+(30-20)^2}.
+```
 
 Quindi:
 
-$$
+```math
 d_{c5,s4}
-=
-\sqrt{225+100}
-=
-\sqrt{325}
+=\sqrt{225+100}
+=\sqrt{325}
 \approx18.0278.
-$$
+```
 
 ---
 

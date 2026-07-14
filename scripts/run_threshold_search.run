@@ -1,0 +1,70 @@
+# Ricerca automatica della soglia ottima per il CMMOFLP nucleare
+
+reset;
+
+model models/threshold.mod;
+data instances/test/toy_instance_01.dat;
+
+option solver gurobi;
+option solver_msg 0;
+
+# Memorizza la migliore soglia ammissibile e la relativa soluzione.
+param best_threshold default -1;
+param best_y {SITES} binary default 0;
+param best_x {COMMUNITIES, SITES} binary default 0;
+param tested_thresholds integer default 0;
+param feasible_thresholds integer default 0;
+
+printf "\n=== RICERCA AUTOMATICA DELLA SOGLIA OTTIMA ===\n";
+
+# Ogni valore ottimo possibile coincide con il valore safety di almeno un sito.
+# Si provano quindi tutti i valori candidati safety[j].
+for {candidate in SITES} {
+    let threshold := safety[candidate];
+    let tested_thresholds := tested_thresholds + 1;
+
+    solve;
+
+    printf "Soglia %.4f -> %s\n", threshold, solve_result;
+
+    if solve_result_num < 100 then {
+        let feasible_thresholds := feasible_thresholds + 1;
+
+        if threshold > best_threshold then {
+            let best_threshold := threshold;
+            let {j in SITES} best_y[j] := y[j];
+            let {i in COMMUNITIES, j in SITES} best_x[i,j] := x[i,j];
+        }
+    }
+}
+
+printf "\n=== RISULTATO DEL METODO A SOGLIA ===\n";
+printf "Soglie testate: %d\n", tested_thresholds;
+printf "Soglie ammissibili: %d\n", feasible_thresholds;
+
+if best_threshold < 0 then {
+    printf "Nessuna soluzione ammissibile trovata.\n";
+}
+else {
+    printf "Migliore soglia ammissibile = %.4f\n", best_threshold;
+
+    printf "\nCentrali aperte:\n";
+    for {j in SITES: best_y[j] > 0.5} {
+        printf "  %s  safety = %.4f  capacity = %.2f\n",
+            j, safety[j], capacity[j];
+    }
+
+    printf "\nAssegnamenti:\n";
+    for {i in COMMUNITIES, j in SITES: best_x[i,j] > 0.5} {
+        printf "  %s -> %s  demand = %.2f\n",
+            i, j, demand[i];
+    }
+
+    printf "\nCarico delle centrali aperte:\n";
+    for {j in SITES: best_y[j] > 0.5} {
+        printf "  %s  load = %.2f / %.2f\n",
+            j,
+            sum {i in COMMUNITIES} demand[i] * best_x[i,j],
+            capacity[j];
+    }
+}

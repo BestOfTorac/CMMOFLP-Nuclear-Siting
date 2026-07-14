@@ -1,0 +1,40 @@
+# Verifica del modello a soglia sulla toy instance
+
+reset;
+
+model models/threshold.mod;
+data instances/test/toy_instance_01.dat;
+
+option solver gurobi;
+
+printf "\n=== TEST 1: SOGLIA 33.5410 ===\n";
+let threshold := 33.5410;
+solve;
+display solve_result;
+printf "Soglia verificata: %.4f\n", threshold;
+
+printf "\n=== TEST 2: SOGLIA 18.0278 ===\n";
+let threshold := 18.0278;
+solve;
+display solve_result;
+printf "Soglia verificata: %.4f\n", threshold;
+
+printf "\nCentrali aperte per la soglia ammissibile:\n";
+for {j in SITES: y[j] > 0.5} {
+    printf "  %s  safety = %.4f  capacity = %.2f\n",
+        j, safety[j], capacity[j];
+}
+
+printf "\nAssegnamenti:\n";
+for {i in COMMUNITIES, j in SITES: x[i,j] > 0.5} {
+    printf "  %s -> %s  demand = %.2f\n",
+        i, j, demand[i];
+}
+
+printf "\nCarico delle centrali aperte:\n";
+for {j in SITES: y[j] > 0.5} {
+    printf "  %s  load = %.2f / %.2f\n",
+        j,
+        sum {i in COMMUNITIES} demand[i] * x[i,j],
+        capacity[j];
+}

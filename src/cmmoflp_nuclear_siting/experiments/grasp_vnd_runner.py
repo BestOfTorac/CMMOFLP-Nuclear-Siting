@@ -35,6 +35,8 @@ class GraspVndExperimentResult:
     starts_completed: int
     successful_starts: int
     failed_starts: int
+    starts_without_improvement: int
+    max_starts_without_improvement: int
     repair_attempts: int
     repair_successes: int
     one_swap_moves: int
@@ -42,6 +44,9 @@ class GraspVndExperimentResult:
     cache_hits: int
     cache_misses: int
     vnd_iterations: int
+    stagnation_stops: int
+    deadline_stops: int
+    stop_reason: str
     objective_upper_bound: float | None
     upper_bound_reached: bool
     optimality_certified_by_upper_bound: bool
@@ -49,8 +54,6 @@ class GraspVndExperimentResult:
 
 
 def _normalize_seed(value: object) -> int:
-    """Converte seed mancanti in -1."""
-
     if value is None or value == "":
         return -1
     return int(value)
@@ -79,6 +82,9 @@ def run_grasp_vnd_once(
     config = GraspVndConfig(
         alpha=config_template.alpha,
         max_starts=config_template.max_starts,
+        max_starts_without_improvement=(
+            config_template.max_starts_without_improvement
+        ),
         time_limit_seconds=config_template.time_limit_seconds,
         candidate_list_size=config_template.candidate_list_size,
         max_iterations_per_start=(
@@ -100,10 +106,7 @@ def run_grasp_vnd_once(
 
         feasible = validation.feasible
         status = "success" if feasible else "invalid"
-
-        error = ""
-        if not feasible:
-            error = "; ".join(validation.errors)
+        error = "" if feasible else "; ".join(validation.errors)
 
         return GraspVndExperimentResult(
             instance_id=instance.name,
@@ -154,6 +157,14 @@ def run_grasp_vnd_once(
                 metadata,
                 "failed_starts",
             ),
+            starts_without_improvement=_metadata_int(
+                metadata,
+                "starts_without_improvement",
+            ),
+            max_starts_without_improvement=_metadata_int(
+                metadata,
+                "max_starts_without_improvement",
+            ),
             repair_attempts=_metadata_int(
                 metadata,
                 "repair_attempts",
@@ -176,6 +187,15 @@ def run_grasp_vnd_once(
                 metadata,
                 "vnd_iterations",
             ),
+            stagnation_stops=_metadata_int(
+                metadata,
+                "stagnation_stops",
+            ),
+            deadline_stops=_metadata_int(
+                metadata,
+                "deadline_stops",
+            ),
+            stop_reason=str(metadata.get("stop_reason", "")),
             objective_upper_bound=_metadata_float(
                 metadata,
                 "objective_upper_bound",
@@ -220,6 +240,10 @@ def run_grasp_vnd_once(
             starts_completed=0,
             successful_starts=0,
             failed_starts=0,
+            starts_without_improvement=0,
+            max_starts_without_improvement=(
+                config.max_starts_without_improvement
+            ),
             repair_attempts=0,
             repair_successes=0,
             one_swap_moves=0,
@@ -227,6 +251,9 @@ def run_grasp_vnd_once(
             cache_hits=0,
             cache_misses=0,
             vnd_iterations=0,
+            stagnation_stops=0,
+            deadline_stops=0,
+            stop_reason="error",
             objective_upper_bound=None,
             upper_bound_reached=False,
             optimality_certified_by_upper_bound=False,
@@ -276,12 +303,13 @@ def run_grasp_vnd_manifest(
         )
 
         for algorithm_seed in seeds:
-            result = run_grasp_vnd_once(
-                instance=instance,
-                algorithm_seed=algorithm_seed,
-                config_template=config_template,
+            results.append(
+                run_grasp_vnd_once(
+                    instance=instance,
+                    algorithm_seed=algorithm_seed,
+                    config_template=config_template,
+                )
             )
-            results.append(result)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     rows = [asdict(result) for result in results]

@@ -20,6 +20,7 @@ from .repair import find_feasible_assignment
 
 Assignment = dict[str, str]
 AssignmentCache = dict[frozenset[str], Assignment | None]
+TOLERANCE = 1e-9
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,7 @@ class GraspVndConfig:
 
     alpha: float = 0.30
     max_starts: int = 25
+    max_starts_without_improvement: int = 20
     time_limit_seconds: float = 5.0
     candidate_list_size: int = 20
     max_iterations_per_start: int = 50
@@ -52,6 +54,8 @@ class SearchStatistics:
     cache_hits: int = 0
     cache_misses: int = 0
     vnd_iterations: int = 0
+    stagnation_stops: int = 0
+    deadline_stops: int = 0
 
 
 def _validate_config(config: GraspVndConfig) -> None:
@@ -59,6 +63,10 @@ def _validate_config(config: GraspVndConfig) -> None:
         raise ValueError("alpha deve appartenere all'intervallo [0, 1].")
     if config.max_starts <= 0:
         raise ValueError("max_starts deve essere positivo.")
+    if config.max_starts_without_improvement <= 0:
+        raise ValueError(
+            "max_starts_without_improvement deve essere positivo."
+        )
     if config.time_limit_seconds <= 0:
         raise ValueError("Il time limit deve essere positivo.")
     if config.candidate_list_size < 2:
@@ -77,6 +85,13 @@ def _validate_config(config: GraspVndConfig) -> None:
         raise ValueError("secondary_open_limit deve essere positivo.")
 
 
+def _check_deadline(deadline: float) -> None:
+    if perf_counter() >= deadline:
+        raise TimeoutError(
+            "Il limite temporale di GRASP-VND è stato raggiunto."
+        )
+
+
 def _site_set_score(
     open_sites: list[str],
     safety: dict[str, float],
@@ -93,11 +108,7 @@ def _objective_upper_bound(
     instance: ProblemInstance,
     safety: dict[str, float],
 ) -> float:
-    """Calcola un upper bound ignorando i vincoli di capacità.
-
-    Aprendo esattamente ``p`` siti, il valore maximin non può superare
-    la sicurezza del p-esimo sito migliore.
-    """
+    """Restituisce il bound del p-esimo sito più sicuro."""
 
     ordered_safety = sorted(safety.values(), reverse=True)
     return ordered_safety[instance.p - 1]
@@ -119,10 +130,10 @@ def _capacity_filter(
 
     return (
         sum(capacity[site_id] for site_id in open_sites)
-        + 1e-9
+        + TOLERANCE
         >= total_demand
         and max(capacity[site_id] for site_id in open_sites)
-        + 1e-9
+        + TOLERANCE
         >= largest_demand
     )
 
@@ -140,9 +151,11 @@ def _assignment_for_sites(
     cache: AssignmentCache,
     statistics: SearchStatistics,
     repair_node_limit: int,
+    deadline: float,
 ) -> Assignment | None:
     """Trova un assegnamento usando best-fit, repair e cache."""
 
+    _check_deadline(deadline)
     key = frozenset(open_sites)
 
     if key in cache:
@@ -170,6 +183,7 @@ def _assignment_for_sites(
         instance,
         open_sites,
         node_limit=repair_node_limit,
+        deadline=deadline,
     )
 
     if repaired is not None:
@@ -210,6 +224,7 @@ def _randomized_construction(
     rng: random.Random,
     cache: AssignmentCache,
     statistics: SearchStatistics,
+    deadline: float,
 ) -> tuple[list[str], Assignment] | None:
     """Costruisce una soluzione tramite Restricted Candidate List."""
 
@@ -221,9 +236,12 @@ def _randomized_construction(
     selected: list[str] = []
 
     while len(selected) < instance.p:
+        _check_deadline(deadline)
         feasible_candidates: list[str] = []
 
         for candidate in all_sites:
+            _check_deadline(deadline)
+
             if candidate in selected:
                 continue
 
@@ -242,7 +260,10 @@ def _randomized_construction(
                 + sum(remaining_capacities[:slots_left])
             )
 
-            if maximum_reachable_capacity + 1e-9 >= total_demand:
+            if (
+                maximum_reachable_capacity + TOLERANCE
+                >= total_demand
+            ):
                 feasible_candidates.append(candidate)
 
         if not feasible_candidates:
@@ -292,7 +313,6 @@ def _randomized_construction(
             for site_id in feasible_candidates
             if combined_score[site_id] + 1e-12 >= threshold
         )
-
         selected.append(rng.choice(restricted_candidates))
 
     selected.sort()
@@ -303,6 +323,7 @@ def _randomized_construction(
         cache,
         statistics,
         config.repair_node_limit,
+        deadline,
     )
 
     if assignment is None:
@@ -325,7 +346,7 @@ def _incoming_candidates(
         site.id
         for site in instance.sites
         if site.id not in current_sites
-        and safety[site.id] + 1e-9 >= minimum_safety
+        and safety[site.id] + TOLERANCE >= minimum_safety
     ]
 
     closed_sites.sort(
@@ -346,6 +367,7 @@ def _best_one_swap(
     config: GraspVndConfig,
     cache: AssignmentCache,
     statistics: SearchStatistics,
+    deadline: float,
 ) -> tuple[list[str], Assignment, tuple[float, float]] | None:
     """Cerca il miglior 1-swap in un vicinato mirato."""
 
@@ -368,6 +390,8 @@ def _best_one_swap(
 
     for site_out in outgoing:
         for site_in in incoming:
+            _check_deadline(deadline)
+
             candidate_sites = sorted(
                 [
                     site_id
@@ -381,18 +405,7 @@ def _best_one_swap(
                 safety,
             )
 
-            # Il 1-swap viene accettato soltanto se migliora
-            # strettamente l'obiettivo maximin. La somma delle sicurezze
-            # viene usata come spareggio tra mosse migliorative.
-            if candidate_score[0] <= current_score[0] + 1e-9:
-                continue
-            # Anche il 2-swap deve migliorare strettamente il
-            # valore maximin; il secondo componente è solo uno spareggio.
-            if candidate_score[0] <= current_score[0] + 1e-9:
-                continue
-            if candidate_score[0] <= current_score[0] + 1e-9:
-                continue
-            if candidate_score[0] <= current_score[0] + 1e-9:
+            if candidate_score[0] <= current_score[0] + TOLERANCE:
                 continue
             if candidate_score <= best_score:
                 continue
@@ -404,6 +417,7 @@ def _best_one_swap(
                 cache,
                 statistics,
                 config.repair_node_limit,
+                deadline,
             )
             if assignment is None:
                 continue
@@ -422,7 +436,6 @@ def _targeted_outgoing_pairs(
     current_sites: list[str],
     safety: dict[str, float],
     secondary_open_limit: int,
-    tolerance: float = 1e-9,
 ) -> list[tuple[str, str]]:
     """Costruisce le coppie uscenti usando i siti critici."""
 
@@ -432,7 +445,7 @@ def _targeted_outgoing_pairs(
     critical = sorted(
         site_id
         for site_id in current_sites
-        if safety[site_id] <= current_minimum + tolerance
+        if safety[site_id] <= current_minimum + TOLERANCE
     )
 
     if len(critical) > 2:
@@ -467,8 +480,9 @@ def _best_two_swap(
     config: GraspVndConfig,
     cache: AssignmentCache,
     statistics: SearchStatistics,
+    deadline: float,
 ) -> tuple[list[str], Assignment, tuple[float, float]] | None:
-    """Cerca un 2-swap mirato sui siti che limitano l'obiettivo."""
+    """Cerca un 2-swap mirato sui siti critici."""
 
     if len(current_sites) < 2:
         return None
@@ -503,6 +517,8 @@ def _best_two_swap(
         ]
 
         for site_in_1, site_in_2 in combinations(incoming, 2):
+            _check_deadline(deadline)
+
             candidate_sites = sorted(
                 retained + [site_in_1, site_in_2]
             )
@@ -511,6 +527,8 @@ def _best_two_swap(
                 safety,
             )
 
+            if candidate_score[0] <= current_score[0] + TOLERANCE:
+                continue
             if candidate_score <= best_score:
                 continue
 
@@ -521,6 +539,7 @@ def _best_two_swap(
                 cache,
                 statistics,
                 config.repair_node_limit,
+                deadline,
             )
             if assignment is None:
                 continue
@@ -552,21 +571,28 @@ def _run_vnd(
     current_score = _site_set_score(current_sites, safety)
     iterations = 0
 
-    while (
-        iterations < config.max_iterations_per_start
-        and perf_counter() < deadline
-    ):
+    while iterations < config.max_iterations_per_start:
+        if perf_counter() >= deadline:
+            statistics.deadline_stops += 1
+            break
+
         statistics.vnd_iterations += 1
 
-        one_swap = _best_one_swap(
-            instance,
-            current_sites,
-            current_score,
-            safety,
-            config,
-            cache,
-            statistics,
-        )
+        try:
+            one_swap = _best_one_swap(
+                instance,
+                current_sites,
+                current_score,
+                safety,
+                config,
+                cache,
+                statistics,
+                deadline,
+            )
+        except TimeoutError:
+            statistics.deadline_stops += 1
+            break
+
         if one_swap is not None:
             (
                 current_sites,
@@ -577,15 +603,21 @@ def _run_vnd(
             iterations += 1
             continue
 
-        two_swap = _best_two_swap(
-            instance,
-            current_sites,
-            current_score,
-            safety,
-            config,
-            cache,
-            statistics,
-        )
+        try:
+            two_swap = _best_two_swap(
+                instance,
+                current_sites,
+                current_score,
+                safety,
+                config,
+                cache,
+                statistics,
+                deadline,
+            )
+        except TimeoutError:
+            statistics.deadline_stops += 1
+            break
+
         if two_swap is not None:
             (
                 current_sites,
@@ -612,6 +644,8 @@ def _build_solution(
     total_runtime_seconds: float,
     time_to_best_seconds: float,
     objective_upper_bound: float,
+    stop_reason: str,
+    starts_without_improvement: int,
 ) -> Solution:
     """Costruisce e valida la soluzione finale."""
 
@@ -628,12 +662,16 @@ def _build_solution(
             "algorithm_seed": config.random_seed,
             "alpha": config.alpha,
             "max_starts": config.max_starts,
+            "max_starts_without_improvement": (
+                config.max_starts_without_improvement
+            ),
             "time_limit_seconds": config.time_limit_seconds,
             "candidate_list_size": config.candidate_list_size,
             "starts_attempted": statistics.starts_attempted,
             "starts_completed": statistics.starts_completed,
             "successful_starts": statistics.successful_starts,
             "failed_starts": statistics.failed_starts,
+            "starts_without_improvement": starts_without_improvement,
             "repair_attempts": statistics.repair_attempts,
             "repair_successes": statistics.repair_successes,
             "one_swap_moves": statistics.one_swap_moves,
@@ -641,13 +679,18 @@ def _build_solution(
             "cache_hits": statistics.cache_hits,
             "cache_misses": statistics.cache_misses,
             "vnd_iterations": statistics.vnd_iterations,
+            "stagnation_stops": statistics.stagnation_stops,
+            "deadline_stops": statistics.deadline_stops,
+            "stop_reason": stop_reason,
             "initial_objective": initial_objective,
             "objective_upper_bound": objective_upper_bound,
             "upper_bound_reached": (
-                objective_value >= objective_upper_bound - 1e-9
+                objective_value
+                >= objective_upper_bound - TOLERANCE
             ),
             "optimality_certified_by_upper_bound": (
-                objective_value >= objective_upper_bound - 1e-9
+                objective_value
+                >= objective_upper_bound - TOLERANCE
             ),
             "time_to_best_seconds": time_to_best_seconds,
             "total_runtime_seconds": total_runtime_seconds,
@@ -693,6 +736,7 @@ def improve_with_vnd(
         cache,
         statistics,
         config.repair_node_limit,
+        deadline,
     )
     if assignment is None:
         raise ValueError(
@@ -704,11 +748,7 @@ def improve_with_vnd(
         safety[site_id] for site_id in initial_sites
     )
 
-    (
-        best_sites,
-        best_assignment,
-        _,
-    ) = _run_vnd(
+    best_sites, best_assignment, _ = _run_vnd(
         instance,
         sorted(initial_sites),
         assignment,
@@ -720,6 +760,15 @@ def improve_with_vnd(
     )
 
     runtime = perf_counter() - start_time
+    objective = min(safety[site_id] for site_id in best_sites)
+
+    if objective >= objective_upper_bound - TOLERANCE:
+        stop_reason = "upper_bound"
+    elif perf_counter() >= deadline:
+        stop_reason = "time_limit"
+    else:
+        stop_reason = "local_optimum"
+
     return _build_solution(
         instance,
         best_sites,
@@ -731,6 +780,8 @@ def improve_with_vnd(
         runtime,
         runtime,
         objective_upper_bound,
+        stop_reason,
+        0,
     )
 
 
@@ -738,7 +789,7 @@ def solve_grasp_vnd(
     instance: ProblemInstance,
     config: GraspVndConfig | None = None,
 ) -> Solution:
-    """Esegue GRASP multi-start con repair e VND."""
+    """Esegue GRASP multi-start con repair, VND e stagnazione."""
 
     config = config or GraspVndConfig()
     _validate_config(config)
@@ -757,14 +808,16 @@ def solve_grasp_vnd(
     best_score: tuple[float, float] | None = None
     time_to_best = 0.0
     initial_objective = 0.0
+    starts_without_improvement = 0
+    stop_reason = "max_starts"
 
-    # Start deterministico di riferimento: repair + local search 1-swap.
     statistics.starts_attempted += 1
     try:
         baseline = solve_local_search(
             instance,
             max_iterations=config.max_iterations_per_start,
             repair_node_limit=config.repair_node_limit,
+            deadline=deadline,
         )
         statistics.starts_completed += 1
         statistics.successful_starts += 1
@@ -777,11 +830,7 @@ def solve_grasp_vnd(
             else 0.0
         )
 
-        (
-            candidate_sites,
-            candidate_assignment,
-            candidate_score,
-        ) = _run_vnd(
+        best_sites, best_assignment, best_score = _run_vnd(
             instance,
             baseline_sites,
             baseline_assignment,
@@ -791,56 +840,79 @@ def solve_grasp_vnd(
             statistics,
             deadline,
         )
-
-        best_sites = candidate_sites
-        best_assignment = candidate_assignment
-        best_score = candidate_score
         time_to_best = perf_counter() - start_time
+    except TimeoutError:
+        statistics.deadline_stops += 1
+        stop_reason = "time_limit"
     except ValueError:
         statistics.starts_completed += 1
         statistics.failed_starts += 1
 
-    # Restanti start GRASP randomizzati.
     for _ in range(1, config.max_starts):
         if (
             best_score is not None
-            and best_score[0] >= objective_upper_bound - 1e-9
+            and best_score[0]
+            >= objective_upper_bound - TOLERANCE
         ):
+            stop_reason = "upper_bound"
             break
+
         if perf_counter() >= deadline:
+            statistics.deadline_stops += 1
+            stop_reason = "time_limit"
+            break
+
+        if (
+            starts_without_improvement
+            >= config.max_starts_without_improvement
+        ):
+            statistics.stagnation_stops += 1
+            stop_reason = "stagnation"
             break
 
         statistics.starts_attempted += 1
-        constructed = _randomized_construction(
-            instance,
-            safety,
-            config,
-            rng,
-            cache,
-            statistics,
-        )
+
+        try:
+            constructed = _randomized_construction(
+                instance,
+                safety,
+                config,
+                rng,
+                cache,
+                statistics,
+                deadline,
+            )
+        except TimeoutError:
+            statistics.deadline_stops += 1
+            stop_reason = "time_limit"
+            break
+
         statistics.starts_completed += 1
 
         if constructed is None:
             statistics.failed_starts += 1
+            starts_without_improvement += 1
             continue
 
         statistics.successful_starts += 1
         initial_sites, assignment = constructed
 
-        (
-            candidate_sites,
-            candidate_assignment,
-            candidate_score,
-        ) = _run_vnd(
-            instance,
-            initial_sites,
-            assignment,
-            safety,
-            config,
-            cache,
-            statistics,
-            deadline,
+        candidate_sites, candidate_assignment, candidate_score = (
+            _run_vnd(
+                instance,
+                initial_sites,
+                assignment,
+                safety,
+                config,
+                cache,
+                statistics,
+                deadline,
+            )
+        )
+
+        primary_improved = (
+            best_score is None
+            or candidate_score[0] > best_score[0] + TOLERANCE
         )
 
         if best_score is None or candidate_score > best_score:
@@ -849,11 +921,24 @@ def solve_grasp_vnd(
             best_score = candidate_score
             time_to_best = perf_counter() - start_time
 
+        if primary_improved:
+            starts_without_improvement = 0
+        else:
+            starts_without_improvement += 1
+
+        if perf_counter() >= deadline:
+            stop_reason = "time_limit"
+            break
+
         if (
             best_score is not None
-            and best_score[0] >= objective_upper_bound - 1e-9
+            and best_score[0]
+            >= objective_upper_bound - TOLERANCE
         ):
+            stop_reason = "upper_bound"
             break
+    else:
+        stop_reason = "max_starts"
 
     if (
         best_sites is None
@@ -877,4 +962,6 @@ def solve_grasp_vnd(
         total_runtime,
         time_to_best,
         objective_upper_bound,
+        stop_reason,
+        starts_without_improvement,
     )

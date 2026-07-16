@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from itertools import product
+from time import perf_counter
 
 from ..core.instance import ProblemInstance
 from ..core.solution import Solution
@@ -19,17 +20,16 @@ def _site_set_score(
     open_sites: list[str],
     safety: dict[str, float],
 ) -> tuple[float, float]:
-    """Restituisce il punteggio lessicografico di un insieme di siti.
-
-    Il primo valore è l'obiettivo maximin.
-    Il secondo valore, usato soltanto come spareggio, è la somma
-    dei valori di sicurezza dei siti aperti.
-    """
+    """Restituisce il punteggio lessicografico di un insieme di siti."""
 
     return (
         min(safety[site_id] for site_id in open_sites),
         sum(safety[site_id] for site_id in open_sites),
     )
+
+
+def _deadline_reached(deadline: float | None) -> bool:
+    return deadline is not None and perf_counter() >= deadline
 
 
 def _build_solution(
@@ -39,6 +39,7 @@ def _build_solution(
     safety: dict[str, float],
     iterations: int,
     initial_objective: float,
+    deadline_reached: bool,
 ) -> Solution:
     """Costruisce e valida un oggetto Solution."""
 
@@ -52,6 +53,7 @@ def _build_solution(
             "method": "repair_and_one_swap_local_search",
             "iterations": iterations,
             "initial_objective": initial_objective,
+            "deadline_reached": deadline_reached,
             "site_safety": safety,
         },
     )
@@ -70,19 +72,19 @@ def solve_local_search(
     instance: ProblemInstance,
     max_iterations: int = 100,
     repair_node_limit: int = 100_000,
+    deadline: float | None = None,
 ) -> Solution:
     """Migliora la greedy mediante riparazione e scambi uno-a-uno.
 
-    Procedura:
-    1. costruisce la selezione iniziale della greedy;
-    2. ripara l'assegnamento con backtracking quando il best-fit fallisce;
-    3. valuta tutti gli scambi tra un sito aperto e uno chiuso;
-    4. accetta il miglior vicino ammissibile con punteggio superiore;
-    5. termina quando non esiste più uno scambio migliorativo.
+    La deadline è globale e opzionale. Se scade dopo che è stata
+    costruita una soluzione ammissibile, la procedura restituisce la
+    migliore soluzione corrente.
     """
 
     if max_iterations < 0:
-        raise ValueError("Il numero massimo di iterazioni non può essere negativo.")
+        raise ValueError(
+            "Il numero massimo di iterazioni non può essere negativo."
+        )
 
     instance.validate()
     safety = compute_site_safety(instance)
@@ -99,20 +101,28 @@ def solve_local_search(
             instance,
             current_sites,
             node_limit=repair_node_limit,
+            deadline=deadline,
         )
         if repaired is None:
             raise ValueError(
-                "Impossibile riparare l'insieme iniziale di siti selezionato dalla greedy."
+                "Impossibile riparare l'insieme iniziale di siti "
+                "selezionato dalla greedy."
             )
         current_assignments = repaired
 
-    initial_objective = min(safety[site_id] for site_id in current_sites)
+    initial_objective = min(
+        safety[site_id] for site_id in current_sites
+    )
     current_score = _site_set_score(current_sites, safety)
     all_site_ids = sorted(site.id for site in instance.sites)
 
     iterations = 0
+    stopped_by_deadline = _deadline_reached(deadline)
 
-    while iterations < max_iterations:
+    while (
+        iterations < max_iterations
+        and not stopped_by_deadline
+    ):
         closed_sites = [
             site_id
             for site_id in all_site_ids
@@ -123,7 +133,14 @@ def solve_local_search(
         best_neighbor_assignments: dict[str, str] | None = None
         best_neighbor_score = current_score
 
-        for site_out, site_in in product(current_sites, closed_sites):
+        for site_out, site_in in product(
+            current_sites,
+            closed_sites,
+        ):
+            if _deadline_reached(deadline):
+                stopped_by_deadline = True
+                break
+
             candidate_sites = sorted(
                 [
                     site_id
@@ -132,16 +149,25 @@ def solve_local_search(
                 ]
                 + [site_in]
             )
-            candidate_score = _site_set_score(candidate_sites, safety)
+            candidate_score = _site_set_score(
+                candidate_sites,
+                safety,
+            )
 
             if candidate_score <= best_neighbor_score:
                 continue
 
-            assignments = find_feasible_assignment(
-                instance,
-                candidate_sites,
-                node_limit=repair_node_limit,
-            )
+            try:
+                assignments = find_feasible_assignment(
+                    instance,
+                    candidate_sites,
+                    node_limit=repair_node_limit,
+                    deadline=deadline,
+                )
+            except TimeoutError:
+                stopped_by_deadline = True
+                break
+
             if assignments is None:
                 continue
 
@@ -149,7 +175,11 @@ def solve_local_search(
             best_neighbor_assignments = assignments
             best_neighbor_score = candidate_score
 
-        if best_neighbor_sites is None or best_neighbor_assignments is None:
+        if (
+            stopped_by_deadline
+            or best_neighbor_sites is None
+            or best_neighbor_assignments is None
+        ):
             break
 
         current_sites = best_neighbor_sites
@@ -164,4 +194,5 @@ def solve_local_search(
         safety=safety,
         iterations=iterations,
         initial_objective=initial_objective,
+        deadline_reached=stopped_by_deadline,
     )

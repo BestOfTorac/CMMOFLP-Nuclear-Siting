@@ -28,6 +28,11 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--starts", type=int, default=25)
+    parser.add_argument(
+        "--stagnation-starts",
+        type=int,
+        default=20,
+    )
     parser.add_argument("--alpha", type=float, default=0.30)
     parser.add_argument("--time-limit", type=float, default=5.0)
     parser.add_argument("--candidate-list-size", type=int, default=20)
@@ -41,6 +46,7 @@ def main() -> int:
     config = GraspVndConfig(
         random_seed=args.seed,
         max_starts=args.starts,
+        max_starts_without_improvement=args.stagnation_starts,
         alpha=args.alpha,
         time_limit_seconds=args.time_limit,
         candidate_list_size=args.candidate_list_size,
@@ -63,6 +69,17 @@ def main() -> int:
         f"{metadata['optimality_certified_by_upper_bound']}"
     )
 
+    print("\nArresto:")
+    print(f"  Motivo: {metadata['stop_reason']}")
+    print(
+        "  Start consecutivi senza miglioramento: "
+        f"{metadata['starts_without_improvement']}"
+    )
+    print(
+        "  Soglia di stagnazione: "
+        f"{metadata['max_starts_without_improvement']}"
+    )
+
     print("\nStatistiche:")
     print(f"  Seed: {metadata['algorithm_seed']}")
     print(f"  Start completati: {metadata['starts_completed']}")
@@ -74,6 +91,8 @@ def main() -> int:
     print(f"  Mosse 2-swap: {metadata['two_swap_moves']}")
     print(f"  Cache hit: {metadata['cache_hits']}")
     print(f"  Cache miss: {metadata['cache_misses']}")
+    print(f"  Stop per stagnazione: {metadata['stagnation_stops']}")
+    print(f"  Stop per deadline: {metadata['deadline_stops']}")
     print(
         "  Tempo al best: "
         f"{metadata['time_to_best_seconds']:.6f} s"

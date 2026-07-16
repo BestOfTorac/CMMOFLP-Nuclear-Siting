@@ -1,8 +1,9 @@
-"""Esegue i metodi esatti AMPL sulle istanze pilota."""
+"""Esegue i metodi esatti AMPL sulle istanze di un manifest."""
 
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from pathlib import Path
 import sys
 
@@ -16,7 +17,7 @@ from cmmoflp_nuclear_siting.exact.ampl_runner import (  # noqa: E402
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Esegue i metodi esatti AMPL sul pilot."
+        description="Esegue i metodi esatti AMPL."
     )
     parser.add_argument(
         "--manifest",
@@ -34,16 +35,16 @@ def parse_arguments() -> argparse.Namespace:
         choices=["compact", "threshold"],
         default=["compact", "threshold"],
     )
-    parser.add_argument(
-        "--solver",
-        default="gurobi",
-    )
-    parser.add_argument(
-        "--time-limit",
-        type=int,
-        default=300,
-    )
+    parser.add_argument("--solver", default="gurobi")
+    parser.add_argument("--time-limit", type=int, default=300)
     return parser.parse_args()
+
+
+def _mean_optional(values: list[float | None]) -> float | None:
+    selected = [value for value in values if value is not None]
+    if not selected:
+        return None
+    return sum(selected) / len(selected)
 
 
 def main() -> int:
@@ -58,32 +59,52 @@ def main() -> int:
         time_limit_seconds=args.time_limit,
     )
 
-    print("\n=== RISULTATI METODI ESATTI SUL PILOT ===")
+    print("\n=== RISULTATI METODI ESATTI ===")
     print(f"Esecuzioni complessive: {len(results)}")
     print(f"File CSV: {args.output}")
 
     for method in args.methods:
         selected = [result for result in results if result.method == method]
-        feasible = [result for result in selected if result.feasible]
+        incumbents = [
+            result for result in selected if result.has_incumbent
+        ]
+        certified = [
+            result for result in selected if result.optimality_certified
+        ]
         errors = [result for result in selected if result.status == "error"]
-
-        average_runtime = (
-            sum(result.runtime_seconds for result in selected) / len(selected)
+        reasons = Counter(
+            result.termination_reason for result in selected
         )
-        average_solver_time = (
-            sum(
-                result.solver_time_seconds or 0.0
-                for result in selected
-            )
-            / len(selected)
+
+        average_runtime = sum(
+            result.runtime_seconds for result in selected
+        ) / len(selected)
+        average_solver_time = _mean_optional(
+            [result.solver_time_seconds for result in selected]
+        )
+        average_gap = _mean_optional(
+            [result.relative_mip_gap for result in incumbents]
         )
 
         print(f"\nMetodo: {method}")
         print(f"  Esecuzioni: {len(selected)}")
-        print(f"  Soluzioni disponibili: {len(feasible)}")
+        print(f"  Incumbent disponibili: {len(incumbents)}")
+        print(f"  Ottimi certificati: {len(certified)}")
         print(f"  Errori: {len(errors)}")
         print(f"  Tempo medio end-to-end: {average_runtime:.6f} s")
-        print(f"  Tempo solver medio: {average_solver_time:.6f} s")
+        if average_solver_time is not None:
+            print(
+                "  Tempo solver medio: "
+                f"{average_solver_time:.6f} s"
+            )
+        if average_gap is not None:
+            print(
+                "  MIP gap relativo medio: "
+                f"{average_gap * 100.0:.6f}%"
+            )
+        print("  Motivi di terminazione:")
+        for reason, count in sorted(reasons.items()):
+            print(f"    {reason}: {count}")
 
     return 0
 

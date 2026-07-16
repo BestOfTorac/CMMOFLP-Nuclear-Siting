@@ -1,0 +1,28 @@
+experiment_name: final_benchmark
+instances_per_class: 5
+base_seed: 202607200
+
+sizes:
+  - name: medium
+    communities: 100
+    candidate_sites: 30
+    plants_to_open: 5
+
+  - name: large
+    communities: 300
+    candidate_sites: 75
+    plants_to_open: 10
+
+  - name: xlarge
+    communities: 600
+    candidate_sites: 150
+    plants_to_open: 15
+
+distributions:
+  - uniform
+  - clustered
+
+capacity_levels:
+  tight: 1.05
+  medium: 1.20
+  loose: 1.50

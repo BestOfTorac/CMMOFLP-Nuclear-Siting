@@ -35,3 +35,4 @@ instances/generated/*
 tmp/
 temp/
 *.tmp
+results/processed/

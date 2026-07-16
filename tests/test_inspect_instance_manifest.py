@@ -1,8 +1,8 @@
-"""Test dell'ispezione dei manifest di benchmark."""
+"""Test delle stime strutturali dei benchmark."""
 
 import pytest
 
-from scripts.inspect_instance_manifest import (
+from cmmoflp_nuclear_siting.analysis.instance_complexity import (
     estimate_compact_complexity,
 )
 

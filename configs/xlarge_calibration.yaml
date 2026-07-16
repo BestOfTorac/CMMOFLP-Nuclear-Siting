@@ -1,0 +1,18 @@
+experiment_name: xlarge_calibration
+instances_per_class: 1
+base_seed: 202607170
+
+sizes:
+  - name: xlarge
+    communities: 600
+    candidate_sites: 150
+    plants_to_open: 15
+
+distributions:
+  - uniform
+  - clustered
+
+capacity_levels:
+  tight: 1.05
+  medium: 1.20
+  loose: 1.50

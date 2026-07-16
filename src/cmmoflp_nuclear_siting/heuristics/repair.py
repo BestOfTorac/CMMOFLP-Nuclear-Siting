@@ -3,30 +3,38 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import sys
+from time import perf_counter
 
 from ..core.instance import ProblemInstance
+
+
+def _check_deadline(deadline: float | None) -> None:
+    """Interrompe la ricerca quando il limite temporale è scaduto."""
+
+    if deadline is not None and perf_counter() >= deadline:
+        raise TimeoutError(
+            "Il limite temporale della riparazione è stato raggiunto."
+        )
 
 
 def find_feasible_assignment(
     instance: ProblemInstance,
     open_sites: Iterable[str],
     node_limit: int = 100_000,
+    deadline: float | None = None,
 ) -> dict[str, str] | None:
     """Cerca un assegnamento capacitato per un insieme fissato di siti.
 
-    La procedura utilizza un backtracking deterministico con:
-    - comunità ordinate per domanda decrescente;
-    - scelta best-fit dei siti;
-    - eliminazione delle simmetrie tra capacità residue uguali;
-    - memoizzazione degli stati non ammissibili;
-    - limite massimo al numero di nodi esplorati.
-
-    Restituisce un dizionario comunità-sito oppure ``None``.
+    La profondità del backtracking coincide al massimo con il numero di
+    comunità. Per istanze molto grandi il limite di ricorsione di Python
+    viene quindi aumentato temporaneamente e ripristinato al termine.
     """
 
     if node_limit <= 0:
         raise ValueError("Il limite di nodi deve essere positivo.")
 
+    _check_deadline(deadline)
     instance.validate()
 
     selected_sites = tuple(dict.fromkeys(open_sites))
@@ -35,12 +43,20 @@ def find_feasible_assignment(
     if not selected_sites:
         return None
     if not set(selected_sites).issubset(known_sites):
-        raise ValueError("La procedura di riparazione ha ricevuto siti sconosciuti.")
+        raise ValueError(
+            "La procedura di riparazione ha ricevuto siti sconosciuti."
+        )
 
     capacity = {site.id: site.capacity for site in instance.sites}
-    total_demand = sum(community.demand for community in instance.communities)
+    total_demand = sum(
+        community.demand for community in instance.communities
+    )
 
-    if sum(capacity[site_id] for site_id in selected_sites) + 1e-9 < total_demand:
+    if (
+        sum(capacity[site_id] for site_id in selected_sites)
+        + 1e-9
+        < total_demand
+    ):
         return None
 
     communities = sorted(
@@ -48,9 +64,9 @@ def find_feasible_assignment(
         key=lambda community: (-community.demand, community.id),
     )
 
-    if max(community.demand for community in communities) > max(
-        capacity[site_id] for site_id in selected_sites
-    ) + 1e-9:
+    if max(community.demand for community in communities) > (
+        max(capacity[site_id] for site_id in selected_sites) + 1e-9
+    ):
         return None
 
     site_order = tuple(
@@ -71,6 +87,8 @@ def find_feasible_assignment(
     def search(index: int) -> bool:
         nonlocal explored_nodes
 
+        _check_deadline(deadline)
+
         if index == len(communities):
             return True
 
@@ -79,7 +97,10 @@ def find_feasible_assignment(
 
         state = (
             index,
-            tuple(round(remaining[site_id], 8) for site_id in site_order),
+            tuple(
+                round(remaining[site_id], 8)
+                for site_id in site_order
+            ),
         )
         if state in failed_states:
             return False
@@ -102,6 +123,8 @@ def find_feasible_assignment(
         tried_residual_capacities: set[float] = set()
 
         for site_id in candidates:
+            _check_deadline(deadline)
+
             residual_key = round(remaining[site_id], 8)
             if residual_key in tried_residual_capacities:
                 continue
@@ -119,7 +142,20 @@ def find_feasible_assignment(
         failed_states.add(state)
         return False
 
-    if search(0):
-        return assignment.copy()
+    previous_limit = sys.getrecursionlimit()
+    required_limit = max(
+        previous_limit,
+        len(communities) + 200,
+    )
 
-    return None
+    try:
+        if required_limit != previous_limit:
+            sys.setrecursionlimit(required_limit)
+
+        if search(0):
+            return assignment.copy()
+
+        return None
+    finally:
+        if sys.getrecursionlimit() != previous_limit:
+            sys.setrecursionlimit(previous_limit)

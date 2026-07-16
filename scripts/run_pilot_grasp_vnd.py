@@ -1,8 +1,9 @@
-"""Esegue GRASP-VND multi-seed sulle istanze pilota."""
+"""Esegue GRASP-VND multi-seed sulle istanze di un manifest."""
 
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from pathlib import Path
 import sys
 
@@ -22,7 +23,7 @@ DEFAULT_SEEDS = [42, 123, 2026, 31415, 98765]
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Esegue GRASP-VND multi-seed sul pilot."
+        description="Esegue GRASP-VND multi-seed."
     )
     parser.add_argument(
         "--manifest",
@@ -41,6 +42,11 @@ def parse_arguments() -> argparse.Namespace:
         default=DEFAULT_SEEDS,
     )
     parser.add_argument("--starts", type=int, default=100)
+    parser.add_argument(
+        "--stagnation-starts",
+        type=int,
+        default=20,
+    )
     parser.add_argument("--time-limit", type=float, default=10.0)
     parser.add_argument("--alpha", type=float, default=0.30)
     parser.add_argument("--candidate-list-size", type=int, default=20)
@@ -56,6 +62,7 @@ def main() -> int:
     config = GraspVndConfig(
         alpha=args.alpha,
         max_starts=args.starts,
+        max_starts_without_improvement=args.stagnation_starts,
         time_limit_seconds=args.time_limit,
         candidate_list_size=args.candidate_list_size,
         repair_node_limit=args.repair_node_limit,
@@ -72,16 +79,37 @@ def main() -> int:
     )
 
     feasible = [result for result in results if result.feasible]
-    errors = [result for result in results if result.status == "error"]
+    software_errors = [
+        result for result in results if result.status == "error"
+    ]
+    limits_without_incumbent = [
+        result
+        for result in results
+        if result.stop_reason == "time_limit_no_incumbent"
+    ]
+    search_without_incumbent = [
+        result
+        for result in results
+        if result.stop_reason == "search_no_incumbent"
+    ]
     certified = [
         result
         for result in results
         if result.optimality_certified_by_upper_bound
     ]
+    stop_reasons = Counter(
+        result.stop_reason for result in results
+    )
 
     average_runtime = (
         sum(result.runtime_seconds for result in results)
         / len(results)
+    )
+    average_feasible_runtime = (
+        sum(result.runtime_seconds for result in feasible)
+        / len(feasible)
+        if feasible
+        else 0.0
     )
     average_time_to_best = (
         sum(
@@ -93,15 +121,33 @@ def main() -> int:
         else 0.0
     )
 
-    print("\n=== PILOT GRASP-VND MULTI-SEED ===")
+    print("\n=== GRASP-VND MULTI-SEED ===")
     print(f"Istanze: {len(results) // len(args.algorithm_seeds)}")
     print(f"Seed algoritmici: {len(args.algorithm_seeds)}")
     print(f"Esecuzioni complessive: {len(results)}")
     print(f"Soluzioni ammissibili: {len(feasible)}")
     print(f"Ottimi certificati dall'upper bound: {len(certified)}")
-    print(f"Errori: {len(errors)}")
+    print(
+        "Time limit senza incumbent: "
+        f"{len(limits_without_incumbent)}"
+    )
+    print(
+        "Ricerca conclusa senza incumbent: "
+        f"{len(search_without_incumbent)}"
+    )
+    print(f"Errori software: {len(software_errors)}")
     print(f"Tempo medio totale: {average_runtime:.6f} s")
-    print(f"Tempo medio al best: {average_time_to_best:.6f} s")
+    print(
+        "Tempo medio sulle esecuzioni ammissibili: "
+        f"{average_feasible_runtime:.6f} s"
+    )
+    print(
+        "Tempo medio al best sulle esecuzioni ammissibili: "
+        f"{average_time_to_best:.6f} s"
+    )
+    print("Motivi di arresto:")
+    for reason, count in sorted(stop_reasons.items()):
+        print(f"  {reason}: {count}")
     print(f"File CSV: {args.output}")
 
     return 0

@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from dataclasses import asdict, dataclass
 from pathlib import Path
+import math
 import re
 import shutil
 import subprocess
@@ -16,6 +17,10 @@ from ..core.instance import ProblemInstance
 
 
 _SAFE_AMPL_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_OBJECTIVE_PATTERN = re.compile(
+    r"(?im)^\s*(?:maximize|minimize)\s+"
+    r"([A-Za-z_][A-Za-z0-9_]*)\s*:"
+)
 
 
 @dataclass(frozen=True)
@@ -26,7 +31,13 @@ class AmplSolveResult:
     status: str
     solve_result_num: int
     feasible: bool
+    has_incumbent: bool
+    optimality_certified: bool
+    termination_reason: str
     objective_value: float | None
+    best_bound: float | None
+    relative_mip_gap: float | None
+    absolute_mip_gap: float | None
     runtime_seconds: float
     solver_time_seconds: float | None
     open_sites: tuple[str, ...]
@@ -47,7 +58,13 @@ class ExactExperimentResult:
     status: str
     solve_result_num: int
     feasible: bool
+    has_incumbent: bool
+    optimality_certified: bool
+    termination_reason: str
     objective_value: float | None
+    best_bound: float | None
+    relative_mip_gap: float | None
+    absolute_mip_gap: float | None
     runtime_seconds: float
     solver_time_seconds: float | None
     open_sites: str
@@ -69,6 +86,20 @@ def _validate_identifier(identifier: str) -> None:
         raise ValueError(
             f"Identificativo non compatibile con AMPL: {identifier!r}"
         )
+
+
+def extract_objective_name(model_path: Path) -> str:
+    """Estrae il nome del primo obiettivo dichiarato nel modello AMPL."""
+
+    model_text = model_path.read_text(encoding="utf-8")
+    match = _OBJECTIVE_PATTERN.search(model_text)
+
+    if match is None:
+        raise ValueError(
+            f"Nessun obiettivo AMPL trovato nel modello {model_path}."
+        )
+
+    return match.group(1)
 
 
 def write_ampl_data(
@@ -144,6 +175,7 @@ def _compact_run_text(
     time_limit_seconds: int,
 ) -> str:
     model_path = project_root / "models/compact.mod"
+    objective_name = extract_objective_name(model_path)
 
     return f"""reset;
 model "{_ampl_path(model_path)}";
@@ -151,12 +183,19 @@ data "{_ampl_path(data_path)}";
 
 option solver {solver};
 option solver_msg 0;
-option {solver}_options 'timelim={time_limit_seconds} mipgap=0';
+option {solver}_options 'lim:time={time_limit_seconds} mip:gap=0 mip:return_gap=3 mip:bestbound=1';
 
 solve;
 
-printf "CMMOFLP_RESULT|method=compact|status=%s|code=%d|objective=%.17g|solver_time=%.17g\\n",
-    solve_result, solve_result_num, z, _solve_elapsed_time;
+printf "CMMOFLP_RESULT|method=compact|status=%s|code=%d|objective=%.17g|best_bound=%.17g|relative_mip_gap=%.17g|absolute_mip_gap=%.17g|solver_time=%.17g\\n",
+    solve_result,
+    solve_result_num,
+    z,
+    {objective_name}.bestbound,
+    {objective_name}.relmipgap,
+    {objective_name}.absmipgap,
+    _solve_elapsed_time;
+
 printf "CMMOFLP_OPEN";
 for {{j in SITES: y[j] > 0.5}} {{
     printf "|%s", j;
@@ -179,7 +218,7 @@ data "{_ampl_path(data_path)}";
 
 option solver {solver};
 option solver_msg 0;
-option {solver}_options 'timelim={time_limit_seconds}';
+option {solver}_options 'lim:time={time_limit_seconds}';
 
 param best_threshold default -1;
 param best_y {{SITES}} binary default 0;
@@ -215,6 +254,48 @@ else {{
 """
 
 
+def _parse_optional_float(value: str | None) -> float | None:
+    """Converte valori numerici AMPL, gestendo NaN e infinito."""
+
+    if value is None:
+        return None
+
+    normalized = value.strip().lower()
+
+    if normalized in {
+        "",
+        "nan",
+        "none",
+        "inf",
+        "+inf",
+        "-inf",
+        "infinity",
+        "+infinity",
+        "-infinity",
+    }:
+        return None
+
+    parsed = float(value)
+    return parsed if math.isfinite(parsed) else None
+
+
+def _termination_reason(status: str, code: int) -> str:
+    normalized = status.strip().lower()
+
+    if normalized == "solved" and code < 100:
+        return "optimal"
+    if normalized == "limit" or 400 <= code < 500:
+        return "time_limit"
+    if normalized == "infeasible" or 200 <= code < 300:
+        return "infeasible"
+    if normalized == "unbounded" or 300 <= code < 400:
+        return "unbounded"
+    if normalized == "failure" or code >= 500:
+        return "failure"
+
+    return normalized or "unknown"
+
+
 def parse_ampl_output(
     output: str,
     expected_method: str,
@@ -245,7 +326,13 @@ def parse_ampl_output(
             status="error",
             solve_result_num=-1,
             feasible=False,
+            has_incumbent=False,
+            optimality_certified=False,
+            termination_reason="error",
             objective_value=None,
+            best_bound=None,
+            relative_mip_gap=None,
+            absolute_mip_gap=None,
             runtime_seconds=runtime_seconds,
             solver_time_seconds=None,
             open_sites=(),
@@ -265,7 +352,13 @@ def parse_ampl_output(
             status="error",
             solve_result_num=-1,
             feasible=False,
+            has_incumbent=False,
+            optimality_certified=False,
+            termination_reason="error",
             objective_value=None,
+            best_bound=None,
+            relative_mip_gap=None,
+            absolute_mip_gap=None,
             runtime_seconds=runtime_seconds,
             solver_time_seconds=None,
             open_sites=(),
@@ -277,34 +370,57 @@ def parse_ampl_output(
 
     status = fields.get("status", "unknown")
     code = int(fields.get("code", "-1"))
+    objective_value = _parse_optional_float(fields.get("objective"))
+    best_bound = _parse_optional_float(fields.get("best_bound"))
+    relative_mip_gap = _parse_optional_float(
+        fields.get("relative_mip_gap")
+    )
+    absolute_mip_gap = _parse_optional_float(
+        fields.get("absolute_mip_gap")
+    )
+    solver_time = _parse_optional_float(fields.get("solver_time"))
 
-    objective_raw = fields.get("objective", "nan")
-    objective_value = (
-        None
-        if objective_raw.lower() in {"nan", "none", ""}
-        else float(objective_raw)
+    optimality_certified = (
+        status.strip().lower() == "solved"
+        and code < 100
+        and objective_value is not None
     )
 
-    solver_time_raw = fields.get("solver_time", "")
-    solver_time = (
-        float(solver_time_raw)
-        if solver_time_raw not in {"", "nan"}
-        else None
-    )
+    if optimality_certified:
+        has_incumbent = True
+    elif status.strip().lower() == "limit":
+        # I driver MP restituiscono gap infinito quando non esiste
+        # ancora una soluzione intera. Il parser converte l'infinito in None.
+        has_incumbent = (
+            objective_value is not None
+            and (
+                relative_mip_gap is not None
+                or absolute_mip_gap is not None
+            )
+        )
+    else:
+        has_incumbent = objective_value is not None and code < 200
+
+    if not has_incumbent:
+        objective_value = None
 
     open_sites: tuple[str, ...] = ()
-    if open_line is not None:
+    if open_line is not None and has_incumbent:
         parts = open_line.split("|")
         open_sites = tuple(part for part in parts[1:] if part)
-
-    feasible = status in {"solved", "limit"} and objective_value is not None
 
     return AmplSolveResult(
         method=method,
         status=status,
         solve_result_num=code,
-        feasible=feasible,
+        feasible=has_incumbent,
+        has_incumbent=has_incumbent,
+        optimality_certified=optimality_certified,
+        termination_reason=_termination_reason(status, code),
         objective_value=objective_value,
+        best_bound=best_bound,
+        relative_mip_gap=relative_mip_gap,
+        absolute_mip_gap=absolute_mip_gap,
         runtime_seconds=runtime_seconds,
         solver_time_seconds=solver_time,
         open_sites=open_sites,
@@ -379,7 +495,13 @@ def solve_with_ampl(
                 status="error",
                 solve_result_num=parsed.solve_result_num,
                 feasible=False,
+                has_incumbent=False,
+                optimality_certified=False,
+                termination_reason="error",
                 objective_value=None,
+                best_bound=parsed.best_bound,
+                relative_mip_gap=parsed.relative_mip_gap,
+                absolute_mip_gap=parsed.absolute_mip_gap,
                 runtime_seconds=runtime_seconds,
                 solver_time_seconds=parsed.solver_time_seconds,
                 open_sites=(),
@@ -392,7 +514,13 @@ def solve_with_ampl(
                 status="error",
                 solve_result_num=parsed.solve_result_num,
                 feasible=False,
+                has_incumbent=False,
+                optimality_certified=False,
+                termination_reason="error",
                 objective_value=None,
+                best_bound=parsed.best_bound,
+                relative_mip_gap=parsed.relative_mip_gap,
+                absolute_mip_gap=parsed.absolute_mip_gap,
                 runtime_seconds=runtime_seconds,
                 solver_time_seconds=parsed.solver_time_seconds,
                 open_sites=(),
@@ -464,7 +592,15 @@ def run_exact_manifest(
                     status=solve_result.status,
                     solve_result_num=solve_result.solve_result_num,
                     feasible=solve_result.feasible,
+                    has_incumbent=solve_result.has_incumbent,
+                    optimality_certified=(
+                        solve_result.optimality_certified
+                    ),
+                    termination_reason=solve_result.termination_reason,
                     objective_value=solve_result.objective_value,
+                    best_bound=solve_result.best_bound,
+                    relative_mip_gap=solve_result.relative_mip_gap,
+                    absolute_mip_gap=solve_result.absolute_mip_gap,
                     runtime_seconds=solve_result.runtime_seconds,
                     solver_time_seconds=solve_result.solver_time_seconds,
                     open_sites=";".join(solve_result.open_sites),

@@ -1,0 +1,15 @@
+experiment_name: xxlarge_clustered_tight
+instances_per_class: 1
+base_seed: 202607182
+
+sizes:
+  - name: xxlarge
+    communities: 1200
+    candidate_sites: 300
+    plants_to_open: 30
+
+distributions:
+  - clustered
+
+capacity_levels:
+  tight: 1.05

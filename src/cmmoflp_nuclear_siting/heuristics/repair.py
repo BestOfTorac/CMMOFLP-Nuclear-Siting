@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import sys
 from time import perf_counter
 
 from ..core.instance import ProblemInstance
@@ -25,16 +26,9 @@ def find_feasible_assignment(
 ) -> dict[str, str] | None:
     """Cerca un assegnamento capacitato per un insieme fissato di siti.
 
-    La procedura utilizza un backtracking deterministico con:
-    - comunità ordinate per domanda decrescente;
-    - scelta best-fit dei siti;
-    - eliminazione delle simmetrie tra capacità residue uguali;
-    - memoizzazione degli stati non ammissibili;
-    - limite massimo al numero di nodi esplorati;
-    - deadline globale opzionale.
-
-    Restituisce un dizionario comunità-sito oppure ``None``.
-    Solleva ``TimeoutError`` se la deadline scade durante la ricerca.
+    La profondità del backtracking coincide al massimo con il numero di
+    comunità. Per istanze molto grandi il limite di ricorsione di Python
+    viene quindi aumentato temporaneamente e ripristinato al termine.
     """
 
     if node_limit <= 0:
@@ -148,7 +142,20 @@ def find_feasible_assignment(
         failed_states.add(state)
         return False
 
-    if search(0):
-        return assignment.copy()
+    previous_limit = sys.getrecursionlimit()
+    required_limit = max(
+        previous_limit,
+        len(communities) + 200,
+    )
 
-    return None
+    try:
+        if required_limit != previous_limit:
+            sys.setrecursionlimit(required_limit)
+
+        if search(0):
+            return assignment.copy()
+
+        return None
+    finally:
+        if sys.getrecursionlimit() != previous_limit:
+            sys.setrecursionlimit(previous_limit)

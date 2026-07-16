@@ -53,10 +53,50 @@ class GraspVndExperimentResult:
     error: str
 
 
+@dataclass(frozen=True)
+class FailureClassification:
+    """Classificazione di una esecuzione terminata senza soluzione."""
+
+    status: str
+    stop_reason: str
+    error: str
+
+
+_NO_INCUMBENT_MESSAGE = (
+    "GRASP-VND non ha trovato alcuna soluzione ammissibile."
+)
+
+
 def _normalize_seed(value: object) -> int:
     if value is None or value == "":
         return -1
     return int(value)
+
+
+def load_instance_for_experiment(
+    project_root: Path,
+    row: dict[str, str],
+) -> ProblemInstance:
+    """Carica una copia indipendente dell'istanza per una singola run.
+
+    Ogni coppia istanza-seed deve lavorare su un oggetto nuovo, così
+    eventuali cache o modifiche interne non possono propagarsi alla run
+    successiva.
+    """
+
+    instance = ProblemInstance.from_json(
+        project_root / row["json_path"]
+    )
+    instance.metadata.update(
+        {
+            "class_id": row.get("class_id", ""),
+            "size": row.get("size", ""),
+            "distribution": row.get("distribution", ""),
+            "capacity_level": row.get("capacity_level", ""),
+            "seed": _normalize_seed(row.get("seed")),
+        }
+    )
+    return instance
 
 
 def _metadata_int(metadata: dict[str, object], key: str) -> int:
@@ -70,6 +110,112 @@ def _metadata_float(
 ) -> float | None:
     value = metadata.get(key)
     return None if value is None else float(value)
+
+
+def classify_grasp_vnd_failure(
+    exception: Exception,
+    runtime_seconds: float,
+    time_limit_seconds: float,
+) -> FailureClassification:
+    """Distingue un limite senza incumbent da un errore software.
+
+    Le istanze generate sono costruite per essere ammissibili. Quando H2
+    non trova alcuna soluzione e consuma quasi tutto il budget temporale,
+    la terminazione viene classificata come time limit senza incumbent,
+    non come errore del programma.
+    """
+
+    message = str(exception).strip()
+
+    if (
+        isinstance(exception, ValueError)
+        and _NO_INCUMBENT_MESSAGE in message
+    ):
+        tolerance = max(0.05, 0.02 * time_limit_seconds)
+        reached_deadline = (
+            runtime_seconds
+            >= max(0.0, time_limit_seconds - tolerance)
+        )
+
+        if reached_deadline:
+            return FailureClassification(
+                status="limit",
+                stop_reason="time_limit_no_incumbent",
+                error="",
+            )
+
+        return FailureClassification(
+            status="no_incumbent",
+            stop_reason="search_no_incumbent",
+            error="",
+        )
+
+    return FailureClassification(
+        status="error",
+        stop_reason="error",
+        error=message,
+    )
+
+
+def _empty_result(
+    *,
+    instance: ProblemInstance,
+    algorithm_seed: int,
+    config: GraspVndConfig,
+    runtime_seconds: float,
+    classification: FailureClassification,
+) -> GraspVndExperimentResult:
+    """Costruisce una riga senza soluzione, ma correttamente classificata."""
+
+    return GraspVndExperimentResult(
+        instance_id=instance.name,
+        class_id=str(instance.metadata.get("class_id", "")),
+        size=str(instance.metadata.get("size", "")),
+        distribution=str(
+            instance.metadata.get("distribution", "")
+        ),
+        capacity_level=str(
+            instance.metadata.get("capacity_level", "")
+        ),
+        instance_seed=_normalize_seed(
+            instance.metadata.get("seed")
+        ),
+        algorithm_seed=algorithm_seed,
+        method="grasp_vnd",
+        status=classification.status,
+        feasible=False,
+        objective_value=None,
+        runtime_seconds=runtime_seconds,
+        time_to_best_seconds=None,
+        open_sites="",
+        starts_attempted=0,
+        starts_completed=0,
+        successful_starts=0,
+        failed_starts=0,
+        starts_without_improvement=0,
+        max_starts_without_improvement=(
+            config.max_starts_without_improvement
+        ),
+        repair_attempts=0,
+        repair_successes=0,
+        one_swap_moves=0,
+        two_swap_moves=0,
+        cache_hits=0,
+        cache_misses=0,
+        vnd_iterations=0,
+        stagnation_stops=0,
+        deadline_stops=(
+            1
+            if classification.stop_reason
+            == "time_limit_no_incumbent"
+            else 0
+        ),
+        stop_reason=classification.stop_reason,
+        objective_upper_bound=None,
+        upper_bound_reached=False,
+        optimality_certified_by_upper_bound=False,
+        error=classification.error,
+    )
 
 
 def run_grasp_vnd_once(
@@ -214,50 +360,18 @@ def run_grasp_vnd_once(
 
     except Exception as exc:  # noqa: BLE001
         measured_runtime = perf_counter() - start
-
-        return GraspVndExperimentResult(
-            instance_id=instance.name,
-            class_id=str(instance.metadata.get("class_id", "")),
-            size=str(instance.metadata.get("size", "")),
-            distribution=str(
-                instance.metadata.get("distribution", "")
-            ),
-            capacity_level=str(
-                instance.metadata.get("capacity_level", "")
-            ),
-            instance_seed=_normalize_seed(
-                instance.metadata.get("seed")
-            ),
-            algorithm_seed=algorithm_seed,
-            method="grasp_vnd",
-            status="error",
-            feasible=False,
-            objective_value=None,
+        classification = classify_grasp_vnd_failure(
+            exception=exc,
             runtime_seconds=measured_runtime,
-            time_to_best_seconds=None,
-            open_sites="",
-            starts_attempted=0,
-            starts_completed=0,
-            successful_starts=0,
-            failed_starts=0,
-            starts_without_improvement=0,
-            max_starts_without_improvement=(
-                config.max_starts_without_improvement
-            ),
-            repair_attempts=0,
-            repair_successes=0,
-            one_swap_moves=0,
-            two_swap_moves=0,
-            cache_hits=0,
-            cache_misses=0,
-            vnd_iterations=0,
-            stagnation_stops=0,
-            deadline_stops=0,
-            stop_reason="error",
-            objective_upper_bound=None,
-            upper_bound_reached=False,
-            optimality_certified_by_upper_bound=False,
-            error=str(exc),
+            time_limit_seconds=config.time_limit_seconds,
+        )
+
+        return _empty_result(
+            instance=instance,
+            algorithm_seed=algorithm_seed,
+            config=config,
+            runtime_seconds=measured_runtime,
+            classification=classification,
         )
 
 
@@ -289,20 +403,14 @@ def run_grasp_vnd_manifest(
     results: list[GraspVndExperimentResult] = []
 
     for row in manifest_rows:
-        instance = ProblemInstance.from_json(
-            project_root / row["json_path"]
-        )
-        instance.metadata.update(
-            {
-                "class_id": row.get("class_id", ""),
-                "size": row.get("size", ""),
-                "distribution": row.get("distribution", ""),
-                "capacity_level": row.get("capacity_level", ""),
-                "seed": _normalize_seed(row.get("seed")),
-            }
-        )
-
         for algorithm_seed in seeds:
+            # Ogni esecuzione riceve una nuova istanza. Questo garantisce
+            # indipendenza tra seed ed evita contaminazioni da cache o
+            # mutazioni accidentali lasciate dalle run precedenti.
+            instance = load_instance_for_experiment(
+                project_root,
+                row,
+            )
             results.append(
                 run_grasp_vnd_once(
                     instance=instance,

@@ -115,6 +115,10 @@ Complessivamente:
 
 delle istanze con ottimo noto vengono risolte all’ottimo dal best-of-5.
 
+![Ottimalità di GRASP-VND nelle classi del benchmark](../results/plots/final/h2_optimality_by_class.png)
+
+Il dettaglio per classe conferma che le perdite di qualità si concentrano soprattutto nelle configurazioni `tight`, mentre tutte le classi `loose` e `medium` vengono risolte quasi sempre all’ottimo.
+
 ## Ablation study
 
 Varianti:
@@ -130,6 +134,12 @@ Varianti:
 | Greedy + 1-swap | 80/90 | 75 | 1,072% | 0,652 s |
 | GRASP-VND seed 42 | 90/90 | 85 | 0,316% | 2,283 s |
 | GRASP-VND best-of-5 | 90/90 | 85 | 0,223% | 11,747 s |
+
+![Fattibilità e qualità delle varianti euristiche](../results/plots/final/solution_quality.png)
+
+![Compromesso tra qualità e runtime](../results/plots/final/quality_runtime_tradeoff.png)
+
+Il confronto mostra due risultati netti: il 1-swap isolato aumenta il tempo senza migliorare la greedy, mentre GRASP-VND riduce sensibilmente il gap e raggiunge la piena ammissibilità. Il best-of-5 migliora leggermente il gap medio rispetto al singolo seed, ma richiede un tempo medio molto maggiore.
 
 ### Effetto del 1-swap isolato
 
@@ -162,6 +172,8 @@ Per `xlarge_uniform_tight_004`:
 | best GRASP-VND | 3,646104 |
 | miglioramento H2 sull’incumbent | 272,83% |
 | distanza bound–H2 rispetto a H2 | 32,52% |
+
+![Confronto sul caso non certificato](../results/plots/final/noncertified_case.png)
 
 GRASP-VND trova una soluzione molto migliore dell’incumbent compact, ma l’ottimalità non può essere dichiarata.
 
@@ -204,6 +216,7 @@ Lo stress test mostra i limiti dei metodi senza far parte del benchmark principa
 ```bash
 python scripts/analyze_final_results.py
 python scripts/analyze_ablation.py
+python scripts/generate_final_plots.py
 ```
 
 I comandi predefiniti leggono `results/final/raw/` e rigenerano le tabelle versionate in `results/final/summary/` e `results/final/ablation/`. I gap reali sono calcolati soltanto quando il compact certifica l’ottimo.

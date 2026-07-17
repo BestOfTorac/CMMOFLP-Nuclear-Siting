@@ -20,9 +20,10 @@ Questa cartella contiene i dati minimi necessari per verificare i risultati ripo
 ```bash
 python scripts/analyze_final_results.py
 python scripts/analyze_ablation.py
-git diff -- results/final
+python scripts/generate_final_plots.py
+git diff -- results/final results/plots/final
 ```
 
 Dopo la rigenerazione non devono comparire differenze sostanziali nei CSV. Piccole variazioni non sono attese perché gli script elaborano dati già fissati e non eseguono algoritmi randomizzati.
 
-Gli output di nuove campagne devono essere salvati nelle cartelle locali ignorate da Git, non in questo snapshot.
+Gli output di nuove campagne devono essere salvati nelle cartelle locali ignorate da Git, non in questo snapshot. I grafici definitivi derivati dallo snapshot sono pubblicati in `results/plots/final/`.

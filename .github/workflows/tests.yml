@@ -23,3 +23,5 @@ jobs:
         run: python -c "import cmmoflp_nuclear_siting; print('Package import OK')"
       - name: Esegue i test senza FutureWarning
         run: python -m pytest -W error::FutureWarning
+      - name: Verifica la generazione dei grafici finali
+        run: python scripts/generate_final_plots.py --output-dir "${RUNNER_TEMP}/cmmoflp-plots"

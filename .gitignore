@@ -29,7 +29,9 @@ results/aggregated/*
 results/plots/*
 !results/raw/.gitkeep
 !results/aggregated/.gitkeep
-!results/plots/.gitkeep
+!results/plots/README.md
+!results/plots/final/
+!results/plots/final/*.png
 instances/generated/*
 !instances/generated/.gitkeep
 tmp/

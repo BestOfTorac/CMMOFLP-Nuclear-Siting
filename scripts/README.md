@@ -9,6 +9,7 @@ scripts/
 ├── analyze_ablation.py
 ├── analyze_final_results.py
 ├── check_instance.py
+├── generate_final_plots.py
 ├── generate_instances.py
 ├── inspect_instance_manifest.py
 ├── merge_manifests.py
@@ -92,6 +93,14 @@ Gli script leggono i risultati ufficiali da `results/final/raw/` e rigenerano:
 results/final/summary/
 results/final/ablation/
 ```
+
+### Rigenerare i grafici definitivi
+
+```bash
+python scripts/generate_final_plots.py
+```
+
+Il comando legge le tabelle pubblicate e riscrive i quattro PNG versionati in `results/plots/final/`.
 
 ## Esecuzioni singole
 

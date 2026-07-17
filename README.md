@@ -54,7 +54,13 @@ La campagna finale comprende **90 istanze**, suddivise tra dimensioni `medium`, 
 
 Le capacità `tight` rappresentano il principale fattore di difficoltà. La local search 1-swap applicata isolatamente non ha migliorato la greedy, mentre GRASP-VND ha aumentato sensibilmente robustezza e qualità.
 
-L’analisi completa è disponibile in [`docs/results.md`](docs/results.md).
+### Sintesi visiva
+
+![Fattibilità e qualità delle varianti euristiche](results/plots/final/solution_quality.png)
+
+![Compromesso tra qualità e runtime](results/plots/final/quality_runtime_tradeoff.png)
+
+L’analisi completa e gli altri grafici sono disponibili in [`docs/results.md`](docs/results.md).
 
 ## Struttura del repository
 
@@ -221,7 +227,7 @@ Per i comandi disponibili:
 
 ## Stato del progetto
 
-Lo sviluppo algoritmico, la campagna sperimentale e la pubblicazione dei risultati definitivi sono conclusi. Le attività residue riguardano la generazione dei grafici finali, la preparazione della relazione di studio e la realizzazione delle slide.
+Lo sviluppo algoritmico, la campagna sperimentale, la pubblicazione dei risultati e la generazione dei grafici definitivi sono conclusi. Le attività residue riguardano la preparazione della relazione di studio e la realizzazione delle slide.
 
 ## Licenza
 

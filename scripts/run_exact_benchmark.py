@@ -22,21 +22,24 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=PROJECT_ROOT / "instances/generated/pilot/manifest.csv",
+        default=(
+            PROJECT_ROOT
+            / "instances/generated/final_benchmark/manifest.csv"
+        ),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=PROJECT_ROOT / "results/raw/pilot_exact.csv",
+        default=PROJECT_ROOT / "results/raw/final_exact.csv",
     )
     parser.add_argument(
         "--methods",
         nargs="+",
         choices=["compact", "threshold"],
-        default=["compact", "threshold"],
+        default=["compact"],
     )
     parser.add_argument("--solver", default="gurobi")
-    parser.add_argument("--time-limit", type=int, default=300)
+    parser.add_argument("--time-limit", type=int, default=60)
     return parser.parse_args()
 
 

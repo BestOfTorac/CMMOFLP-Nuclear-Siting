@@ -1,4 +1,4 @@
-"""Esegue greedy e local search sulle istanze della campagna pilota."""
+"""Esegue le baseline greedy e local search su un manifest di benchmark."""
 
 from __future__ import annotations
 
@@ -25,13 +25,13 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         default=(
             PROJECT_ROOT
-            / "instances/generated/pilot/manifest.csv"
+            / "instances/generated/final_benchmark/manifest.csv"
         ),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=PROJECT_ROOT / "results/raw/pilot_heuristics.csv",
+        default=PROJECT_ROOT / "results/raw/final_heuristics.csv",
     )
     parser.add_argument(
         "--methods",
@@ -53,7 +53,7 @@ def main() -> int:
     )
     summary = summarize_results(results)
 
-    print("\n=== RISULTATI ESPERIMENTI PILOTA ===")
+    print("\n=== RISULTATI BASELINE DEL BENCHMARK ===")
     print(f"Esecuzioni complessive: {len(results)}")
     print(f"File CSV: {args.output}")
 

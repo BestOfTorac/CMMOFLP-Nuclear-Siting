@@ -2,6 +2,8 @@
 
 Gli script rappresentano l’interfaccia da riga di comando del progetto. Devono essere eseguiti dalla cartella principale del repository con l’ambiente virtuale attivo.
 
+I tre runner principali hanno nomi generali e possono essere applicati a qualunque manifest: `run_baseline_benchmark.py`, `run_grasp_vnd_benchmark.py` e `run_exact_benchmark.py`.
+
 ## Comandi essenziali
 
 ### Validare una istanza
@@ -33,7 +35,7 @@ python scripts/run_grasp_vnd.py \
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/final_benchmark.yaml
+  --config configs/benchmark/final_benchmark.yaml
 ```
 
 Il comando genera i JSON e il relativo `manifest.csv` in:
@@ -46,7 +48,7 @@ Per rigenerare una cartella esistente:
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/final_benchmark.yaml \
+  --config configs/benchmark/final_benchmark.yaml \
   --overwrite
 ```
 
@@ -71,7 +73,7 @@ results/final/ablation/
 ### Baseline greedy e local search
 
 ```bash
-python scripts/run_pilot_heuristics.py \
+python scripts/run_baseline_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_heuristics.csv
 ```
@@ -79,7 +81,7 @@ python scripts/run_pilot_heuristics.py \
 ### GRASP-VND multi-seed
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py \
+python scripts/run_grasp_vnd_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_grasp_vnd.csv \
   --algorithm-seeds 42 123 2026 31415 98765 \
@@ -91,7 +93,7 @@ python scripts/run_pilot_grasp_vnd.py \
 ### Metodi esatti
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_exact.csv \
   --methods compact \

@@ -146,13 +146,13 @@ Generazione delle 90 istanze:
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/final_benchmark.yaml
+  --config configs/benchmark/final_benchmark.yaml
 ```
 
 Esecuzione delle baseline:
 
 ```bash
-python scripts/run_pilot_heuristics.py \
+python scripts/run_baseline_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_heuristics.csv
 ```
@@ -160,7 +160,7 @@ python scripts/run_pilot_heuristics.py \
 Esecuzione di GRASP-VND con cinque seed:
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py \
+python scripts/run_grasp_vnd_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_grasp_vnd.csv \
   --algorithm-seeds 42 123 2026 31415 98765 \
@@ -172,7 +172,7 @@ python scripts/run_pilot_grasp_vnd.py \
 Esecuzione del modello compatto:
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/final_benchmark/manifest.csv \
   --output results/raw/final_exact.csv \
   --methods compact \

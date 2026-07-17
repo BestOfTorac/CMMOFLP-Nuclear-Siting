@@ -23,7 +23,7 @@ Il tempo end-to-end è il riferimento principale per confrontare implementazioni
 Dopo aver generato le istanze pilota:
 
 ```bash
-python scripts/run_pilot_exact.py
+python scripts/run_exact_benchmark.py
 ```
 
 Il risultato viene salvato in:
@@ -35,7 +35,7 @@ results/raw/pilot_exact.csv
 È possibile cambiare solver o time limit:
 
 ```bash
-python scripts/run_pilot_exact.py --solver gurobi --time-limit 300
+python scripts/run_exact_benchmark.py --solver gurobi --time-limit 300
 ```
 
 ## Test automatici

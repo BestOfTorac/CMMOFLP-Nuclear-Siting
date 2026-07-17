@@ -36,13 +36,13 @@ Queste classi separano gli effetti di distribuzione geografica e capacità.
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/xxlarge_uniform_tight.yaml
+  --config configs/stress/xxlarge_uniform_tight.yaml
 
 python scripts/generate_instances.py \
-  --config configs/xxlarge_uniform_medium.yaml
+  --config configs/stress/xxlarge_uniform_medium.yaml
 
 python scripts/generate_instances.py \
-  --config configs/xxlarge_clustered_tight.yaml
+  --config configs/stress/xxlarge_clustered_tight.yaml
 ```
 
 ## Manifest unificato
@@ -73,7 +73,7 @@ Cinque seed per tre istanze:
 esecuzioni.
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py \
+python scripts/run_grasp_vnd_benchmark.py \
   --manifest instances/generated/xxlarge_calibration/manifest.csv \
   --output results/raw/xxlarge_calibration_grasp_vnd.csv \
   --algorithm-seeds 42 123 2026 31415 98765 \
@@ -85,7 +85,7 @@ python scripts/run_pilot_grasp_vnd.py \
 ## Modello compatto
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/xxlarge_calibration/manifest.csv \
   --output results/raw/xxlarge_calibration_exact.csv \
   --methods compact \

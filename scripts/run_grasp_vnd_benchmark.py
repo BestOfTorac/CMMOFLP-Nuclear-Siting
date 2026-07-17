@@ -28,12 +28,15 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=PROJECT_ROOT / "instances/generated/pilot/manifest.csv",
+        default=(
+            PROJECT_ROOT
+            / "instances/generated/final_benchmark/manifest.csv"
+        ),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=PROJECT_ROOT / "results/raw/pilot_grasp_vnd.csv",
+        default=PROJECT_ROOT / "results/raw/final_grasp_vnd.csv",
     )
     parser.add_argument(
         "--algorithm-seeds",
@@ -47,7 +50,7 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=20,
     )
-    parser.add_argument("--time-limit", type=float, default=10.0)
+    parser.add_argument("--time-limit", type=float, default=20.0)
     parser.add_argument("--alpha", type=float, default=0.30)
     parser.add_argument("--candidate-list-size", type=int, default=20)
     parser.add_argument("--safety-weight", type=float, default=0.80)
@@ -121,7 +124,7 @@ def main() -> int:
         else 0.0
     )
 
-    print("\n=== GRASP-VND MULTI-SEED ===")
+    print("\n=== GRASP-VND BENCHMARK MULTI-SEED ===")
     print(f"Istanze: {len(results) // len(args.algorithm_seeds)}")
     print(f"Seed algoritmici: {len(args.algorithm_seeds)}")
     print(f"Esecuzioni complessive: {len(results)}")

@@ -41,7 +41,7 @@ Il time limit è un limite massimo. Quando viene raggiunto l'upper bound teorico
 ## Esecuzione
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py
+python scripts/run_grasp_vnd_benchmark.py
 ```
 
 Output:

@@ -65,7 +65,7 @@ Il generatore conserva una partizione garantita nei metadati, ma gli algoritmi n
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/intermediate_calibration.yaml
+  --config configs/calibration/intermediate_calibration.yaml
 ```
 
 Output:
@@ -84,7 +84,7 @@ python scripts/inspect_instance_manifest.py \
 ### Passo 3 — GRASP-VND
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py \
+python scripts/run_grasp_vnd_benchmark.py \
   --manifest instances/generated/intermediate_calibration/manifest.csv \
   --output results/raw/intermediate_calibration_grasp_vnd.csv \
   --algorithm-seeds 42 123 2026 31415 98765 \
@@ -97,7 +97,7 @@ python scripts/run_pilot_grasp_vnd.py \
 Si esegue soltanto il modello compatto con un time limit iniziale di 60 secondi:
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/intermediate_calibration/manifest.csv \
   --output results/raw/intermediate_calibration_exact.csv \
   --methods compact \

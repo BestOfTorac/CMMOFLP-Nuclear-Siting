@@ -22,7 +22,7 @@ Il modello:
 È il metodo esatto principale e viene eseguito automaticamente tramite:
 
 ```bash
-python scripts/run_pilot_exact.py --methods compact
+python scripts/run_exact_benchmark.py --methods compact
 ```
 
 ## `threshold.mod`

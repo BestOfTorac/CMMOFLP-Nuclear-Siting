@@ -54,7 +54,7 @@ Un incumbent trovato al time limit è una soluzione ammissibile, ma non deve ess
 La configurazione:
 
 ```text
-configs/xlarge_calibration.yaml
+configs/calibration/xlarge_calibration.yaml
 ```
 
 genera sei istanze:
@@ -84,7 +84,7 @@ python scripts/run_exact_toy.py
 ```
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/intermediate_calibration/manifest.csv \
   --output results/raw/intermediate_calibration_exact_metrics.csv \
   --methods compact \
@@ -95,13 +95,13 @@ Successivamente si generano le XLarge:
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/xlarge_calibration.yaml
+  --config configs/calibration/xlarge_calibration.yaml
 ```
 
 e si eseguono:
 
 ```bash
-python scripts/run_pilot_grasp_vnd.py \
+python scripts/run_grasp_vnd_benchmark.py \
   --manifest instances/generated/xlarge_calibration/manifest.csv \
   --output results/raw/xlarge_calibration_grasp_vnd.csv \
   --algorithm-seeds 42 123 2026 31415 98765 \
@@ -111,7 +111,7 @@ python scripts/run_pilot_grasp_vnd.py \
 ```
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest instances/generated/xlarge_calibration/manifest.csv \
   --output results/raw/xlarge_calibration_exact.csv \
   --methods compact \

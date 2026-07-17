@@ -36,13 +36,13 @@ Per ogni combinazione istanza-metodo vengono salvati:
 Prima generare le istanze:
 
 ```bash
-python scripts/generate_instances.py --config configs/pilot.yaml
+python scripts/generate_instances.py --config configs/calibration/pilot.yaml
 ```
 
 Poi eseguire le euristiche:
 
 ```bash
-python scripts/run_pilot_heuristics.py
+python scripts/run_baseline_benchmark.py
 ```
 
 Il file prodotto è:

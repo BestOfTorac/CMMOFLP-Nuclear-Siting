@@ -34,7 +34,7 @@ Il modello compatto è il riferimento esatto principale perché, nelle verifiche
 ### Esecuzione
 
 ```bash
-python scripts/run_pilot_exact.py \
+python scripts/run_exact_benchmark.py \
   --manifest <manifest.csv> \
   --output <results.csv> \
   --methods compact \

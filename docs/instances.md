@@ -120,14 +120,14 @@ Ogni istanza conserva il seed di generazione. Il manifest associa:
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/final_benchmark.yaml
+  --config configs/benchmark/final_benchmark.yaml
 ```
 
 Per rigenerare una cartella:
 
 ```bash
 python scripts/generate_instances.py \
-  --config configs/final_benchmark.yaml \
+  --config configs/benchmark/final_benchmark.yaml \
   --overwrite
 ```
 

@@ -80,7 +80,7 @@ Dimensione:
 Prima si verifica il runner sulla toy instance e sulla calibrazione già risolta:
 
 ```bash
-python scripts/run_exact_toy.py
+python scripts/examples/run_exact_toy.py
 ```
 
 ```bash

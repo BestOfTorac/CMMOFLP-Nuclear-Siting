@@ -7,7 +7,7 @@ import csv
 from pathlib import Path
 import sys
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cmmoflp_nuclear_siting.core.instance import ProblemInstance  # noqa: E402

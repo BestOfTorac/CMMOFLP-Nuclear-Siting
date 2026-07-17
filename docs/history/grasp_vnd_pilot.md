@@ -53,7 +53,7 @@ results/raw/pilot_grasp_vnd.csv
 ## Analisi
 
 ```bash
-python scripts/analyze_grasp_vnd_pilot.py
+python scripts/history/analyze_grasp_vnd_pilot.py
 ```
 
 Output:

@@ -28,7 +28,7 @@ Interpretazione:
 ## Esecuzione
 
 ```bash
-python scripts/analyze_heuristic_gaps.py
+python scripts/history/analyze_heuristic_gaps.py
 ```
 
 Vengono prodotti:

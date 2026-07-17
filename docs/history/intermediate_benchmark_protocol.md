@@ -109,7 +109,7 @@ Il metodo a soglia non viene ancora eseguito sulle istanze large. L'implementazi
 ### Passo 5 — Analisi
 
 ```bash
-python scripts/analyze_grasp_vnd_pilot.py \
+python scripts/history/analyze_grasp_vnd_pilot.py \
   --grasp-results results/raw/intermediate_calibration_grasp_vnd.csv \
   --exact-results results/raw/intermediate_calibration_exact.csv \
   --seed-output results/aggregated/intermediate_grasp_vnd_by_seed.csv \

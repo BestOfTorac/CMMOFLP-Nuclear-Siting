@@ -26,7 +26,10 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         type=Path,
-        default=PROJECT_ROOT / "configs/pilot.yaml",
+        default=(
+            PROJECT_ROOT
+            / "configs/benchmark/final_benchmark.yaml"
+        ),
         help="File YAML con la configurazione.",
     )
     parser.add_argument(

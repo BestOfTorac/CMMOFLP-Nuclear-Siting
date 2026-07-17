@@ -1,10 +1,24 @@
 cff-version: 1.2.0
 title: "CMMOFLP Nuclear Siting"
-message: "Citare questo repository indicando gli autori e la versione utilizzata."
+message: "Citare questo software indicando gli autori, la versione e il repository."
 type: software
 authors:
   - family-names: "Torac"
     given-names: "Valerio"
   - family-names: "Shalby"
     given-names: "Ali"
-version: 0.1.0
+version: 1.0.0
+date-released: 2026-07-17
+repository-code: "https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting"
+url: "https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting"
+abstract: >-
+  Implementazione e valutazione sperimentale di metodi esatti ed euristici
+  per il Capacitated Multiple Maximin Obnoxious Facility Location Problem,
+  applicato a uno scenario sintetico di localizzazione di centrali nucleari.
+keywords:
+  - facility location
+  - integer programming
+  - GRASP
+  - VND
+  - nuclear siting
+  - operations research

@@ -238,9 +238,11 @@ Per GRASP-VND vengono distinti:
 
 ## Analisi
 
+Lo snapshot pubblicato può essere analizzato direttamente:
+
 ```bash
 python scripts/analyze_final_results.py
 python scripts/analyze_ablation.py
 ```
 
-Le tabelle vengono salvate in `results/processed/`.
+Le tabelle versionate si trovano in `results/final/summary/` e `results/final/ablation/`. Per analizzare una nuova riproduzione salvata in `results/raw/`, è possibile specificare i tre file di input e una cartella di output sotto `results/processed/`.

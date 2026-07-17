@@ -206,4 +206,4 @@ python scripts/analyze_final_results.py
 python scripts/analyze_ablation.py
 ```
 
-I gap reali sono calcolati soltanto quando il compact certifica l’ottimo.
+I comandi predefiniti leggono `results/final/raw/` e rigenerano le tabelle versionate in `results/final/summary/` e `results/final/ablation/`. I gap reali sono calcolati soltanto quando il compact certifica l’ottimo.

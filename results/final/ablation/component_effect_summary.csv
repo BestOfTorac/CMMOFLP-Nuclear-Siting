@@ -1,0 +1,9 @@
+scope,comparison,instances,recovered_instances,improved_instances,equal_instances,worsened_instances,new_optimal_instances,runtime_ratio_mean
+overall,Greedy -> Greedy + 1-swap,90,0,0,80,0,,3.8704285910152203
+overall,H2 seed 42 -> H2 best-of-5,90,0,1,89,0,0,5.4535216157284445
+medium,Greedy -> Greedy + 1-swap,30,0,0,29,0,,5.713480941931368
+medium,H2 seed 42 -> H2 best-of-5,30,0,0,30,0,0,5.478053983977672
+large,Greedy -> Greedy + 1-swap,30,0,0,27,0,,3.3918810020834576
+large,H2 seed 42 -> H2 best-of-5,30,0,0,30,0,0,5.762769988500952
+xlarge,Greedy -> Greedy + 1-swap,30,0,0,24,0,,2.5059238290308343
+xlarge,H2 seed 42 -> H2 best-of-5,30,0,1,29,0,0,5.119740874706707

@@ -29,22 +29,22 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--heuristics",
         type=Path,
-        default=Path("results/raw/final_heuristics.csv"),
+        default=Path("results/final/raw/final_heuristics.csv"),
     )
     parser.add_argument(
         "--grasp-vnd",
         type=Path,
-        default=Path("results/raw/final_grasp_vnd.csv"),
+        default=Path("results/final/raw/final_grasp_vnd.csv"),
     )
     parser.add_argument(
         "--exact",
         type=Path,
-        default=Path("results/raw/final_exact.csv"),
+        default=Path("results/final/raw/final_exact.csv"),
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/processed/final"),
+        default=Path("results/final/summary"),
     )
     return parser.parse_args()
 

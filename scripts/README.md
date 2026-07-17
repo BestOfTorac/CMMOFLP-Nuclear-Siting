@@ -50,6 +50,22 @@ python scripts/generate_instances.py \
   --overwrite
 ```
 
+## Analisi dello snapshot pubblicato
+
+Il repository contiene i risultati definitivi in `results/final/raw/`. Per rigenerare le tabelle pubblicate:
+
+```bash
+python scripts/analyze_final_results.py
+python scripts/analyze_ablation.py
+```
+
+Output predefiniti:
+
+```text
+results/final/summary/
+results/final/ablation/
+```
+
 ## Esecuzione di un benchmark
 
 ### Baseline greedy e local search
@@ -84,18 +100,22 @@ python scripts/run_pilot_exact.py \
 
 I metodi esatti richiedono AMPL e un solver MIP configurato localmente. Il solver predefinito è Gurobi.
 
-## Analisi finali
+## Analisi di una nuova riproduzione
+
+I runner salvano normalmente i nuovi output nell’area locale ignorata `results/raw/`. Per analizzarli senza modificare lo snapshot pubblicato:
 
 ```bash
-python scripts/analyze_final_results.py
-python scripts/analyze_ablation.py
-```
+python scripts/analyze_final_results.py \
+  --heuristics results/raw/final_heuristics.csv \
+  --grasp-vnd results/raw/final_grasp_vnd.csv \
+  --exact results/raw/final_exact.csv \
+  --output-dir results/processed/final
 
-Output predefiniti:
-
-```text
-results/processed/final/
-results/processed/ablation/
+python scripts/analyze_ablation.py \
+  --heuristics results/raw/final_heuristics.csv \
+  --grasp-vnd results/raw/final_grasp_vnd.csv \
+  --exact results/raw/final_exact.csv \
+  --output-dir results/processed/ablation
 ```
 
 ## Utilità per manifest e istanze

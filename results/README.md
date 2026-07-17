@@ -1,77 +1,60 @@
 # Risultati
 
-La cartella raccoglie gli output degli esperimenti e delle analisi.
+La cartella separa lo **snapshot definitivo pubblicato** dagli output locali prodotti durante nuove esecuzioni.
 
-## Struttura attuale
+## Struttura
 
 ```text
 results/
-├── raw/          una riga per ogni esecuzione
-├── aggregated/   aggregazioni storiche
-├── processed/    tabelle prodotte dalle analisi finali
-└── plots/        grafici generati automaticamente
+├── final/
+│   ├── raw/        tre CSV consolidati della campagna definitiva
+│   ├── summary/    aggregazioni dell’analisi finale
+│   └── ablation/   tabelle dell’ablation study
+├── raw/            output locali e intermedi ignorati da Git
+├── aggregated/     aggregazioni storiche ignorate da Git
+├── processed/      elaborazioni locali ignorate da Git
+└── plots/          grafici generati localmente
 ```
 
-## Risultati grezzi
+## Snapshot definitivo
 
-I file in `raw/` sono prodotti dai runner sperimentali, ad esempio:
+I file in `final/raw/` sono dati sperimentali immutati:
 
-```text
-final_heuristics.csv
-final_grasp_vnd.csv
-final_exact.csv
-```
+| File | Righe | Contenuto |
+|---|---:|---|
+| `final_heuristics.csv` | 180 | greedy e local search su 90 istanze |
+| `final_grasp_vnd.csv` | 450 | cinque seed GRASP-VND per istanza |
+| `final_exact.csv` | 90 | modello compatto con incumbent, bound e gap |
 
-Non devono essere modificati manualmente.
+I file in `final/summary/` e `final/ablation/` sono derivati automaticamente. Non devono essere corretti manualmente.
 
-## Analisi finali
+## Rigenerare le tabelle pubblicate
 
 ```bash
 python scripts/analyze_final_results.py
-```
-
-genera le tabelle in:
-
-```text
-results/processed/final/
-```
-
-Tra gli output principali:
-
-- `exact_summary.csv`;
-- `baseline_summary.csv`;
-- `h2_run_summary.csv`;
-- `h2_best_of_five_summary.csv`;
-- `h2_instance_summary.csv`;
-- `class_summary.csv`;
-- `noncertified_instances.csv`.
-
-L’ablation study:
-
-```bash
 python scripts/analyze_ablation.py
 ```
 
-genera:
+I comandi leggono per impostazione predefinita `results/final/raw/` e riscrivono gli output versionati. Un `git diff` vuoto dopo la rigenerazione conferma la riproducibilità.
 
-```text
-results/processed/ablation/
+## Ripetere gli esperimenti
+
+Le nuove campagne devono essere salvate in `results/raw/`, che rimane ignorata da Git. Per analizzarle si passano esplicitamente i percorsi:
+
+```bash
+python scripts/analyze_final_results.py \
+  --heuristics results/raw/final_heuristics.csv \
+  --grasp-vnd results/raw/final_grasp_vnd.csv \
+  --exact results/raw/final_exact.csv \
+  --output-dir results/processed/final
 ```
 
-## Politica di versionamento
-
-Gli output intermedi, le calibrazioni e i file generati localmente sono ignorati da Git.
-
-Durante la pulizia del repository verrà pubblicata soltanto una selezione compatta dei risultati definitivi, sufficiente a:
-
-- verificare i numeri riportati nel README;
-- rigenerare tabelle e grafici;
-- evitare di ripetere l’intera campagna AMPL/Gurobi dopo un clone.
+In questo modo una riproduzione locale non sovrascrive lo snapshot ufficiale.
 
 ## Regole di interpretazione
 
 - un incumbent compact non viene chiamato ottimo senza `optimality_certified = True`;
 - i gap reali sono calcolati soltanto sulle istanze con ottimo certificato;
-- i cinque seed GRASP-VND sono conservati come esecuzioni indipendenti;
-- best, average e worst seed devono essere distinti;
-- i risultati grezzi non devono essere sovrascritti da elaborazioni manuali.
+- le cinque run GRASP-VND sono indipendenti;
+- best, average e worst seed restano distinti;
+- i CSV grezzi pubblicati non devono essere modificati manualmente.

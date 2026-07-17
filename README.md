@@ -1,5 +1,7 @@
 # CMMOFLP Nuclear Siting
 
+**Versione del progetto: 1.0.0**
+
 [![Tests](https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting/actions/workflows/tests.yml/badge.svg)](https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting/actions/workflows/tests.yml)
 
 Studio computazionale del **Capacitated Multiple Maximin Obnoxious Facility Location Problem (CMMOFLP)** applicato alla localizzazione discreta di centrali nucleari.
@@ -93,8 +95,8 @@ Nessuna licenza o credenziale è inclusa nel repository.
 python -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements-dev.txt
-python -m pytest
+python -m pip install -e ".[dev]"
+python -m pytest -W error::FutureWarning
 ```
 
 ### Linux/macOS
@@ -103,8 +105,8 @@ python -m pytest
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements-dev.txt
-python -m pytest
+python -m pip install -e ".[dev]"
+python -m pytest -W error::FutureWarning
 ```
 
 ## Avvio rapido
@@ -219,7 +221,7 @@ Per i comandi disponibili:
 
 ## Stato del progetto
 
-Lo sviluppo algoritmico e la campagna sperimentale sono conclusi. Le attività residue riguardano la pubblicazione dei risultati definitivi, la generazione dei grafici finali e la preparazione delle slide.
+Lo sviluppo algoritmico, la campagna sperimentale e la pubblicazione dei risultati definitivi sono conclusi. Le attività residue riguardano la generazione dei grafici finali, la preparazione della relazione di studio e la realizzazione delle slide.
 
 ## Licenza
 

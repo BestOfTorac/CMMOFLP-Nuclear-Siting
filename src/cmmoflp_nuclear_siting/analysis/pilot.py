@@ -118,11 +118,11 @@ def build_pairwise_comparison(
 
     greedy_success = (
         (comparison["greedy_status"] == "success")
-        & comparison["greedy_feasible"].fillna(False).astype(bool)
+        & comparison["greedy_feasible"].eq(True)
     )
     local_success = (
         (comparison["local_search_status"] == "success")
-        & comparison["local_search_feasible"].fillna(False).astype(bool)
+        & comparison["local_search_feasible"].eq(True)
     )
     both_success = greedy_success & local_success
 

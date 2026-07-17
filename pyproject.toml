@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cmmoflp-nuclear-siting"
-version = "0.1.0"
+version = "1.0.0"
 description = "Studio computazionale del CMMOFLP applicato alla localizzazione di centrali nucleari."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,6 +12,37 @@ authors = [
   { name = "Valerio Torac" },
   { name = "Ali Shalby" }
 ]
+keywords = [
+  "facility location",
+  "integer programming",
+  "GRASP",
+  "VND",
+  "nuclear siting",
+  "operations research"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "matplotlib>=3.8",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.urls]
+Repository = "https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting"
+Documentation = "https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting/tree/main/docs"
+Results = "https://github.com/BestOfTorac/CMMOFLP-Nuclear-Siting/tree/main/results/final"
 
 [tool.setuptools.packages.find]
 where = ["src"]

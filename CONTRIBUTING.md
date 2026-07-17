@@ -46,7 +46,7 @@ Ogni commit deve rappresentare una modifica coerente e verificabile.
 Prima di effettuare il push:
 
 ```bash
-python -m pytest
+python -m pytest -W error::FutureWarning
 git status
 ```
 

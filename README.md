@@ -52,14 +52,14 @@ La campagna finale comprende **90 istanze**, suddivise tra dimensioni `medium`, 
 
 Le capacità `tight` rappresentano il principale fattore di difficoltà. La local search 1-swap applicata isolatamente non ha migliorato la greedy, mentre GRASP-VND ha aumentato sensibilmente robustezza e qualità.
 
-I dettagli del protocollo e dell’analisi sono disponibili nella [documentazione](docs/index.md).
+L’analisi completa è disponibile in [`docs/results.md`](docs/results.md).
 
 ## Struttura del repository
 
 ```text
 .
 ├── configs/        configurazioni di benchmark, calibrazione e stress test
-├── docs/           formulazione, metodi, protocolli e analisi
+├── docs/           problema, modelli, metodi, esperimenti e risultati
 ├── instances/      toy instance e istanze generate localmente
 ├── models/         modelli AMPL
 ├── results/        output grezzi, aggregazioni e grafici
@@ -196,18 +196,20 @@ Il punto di accesso principale è:
 
 Documenti essenziali:
 
-- [Definizione formale del problema](docs/problem_definition.md)
+- [Problema e formulazione](docs/problem.md)
+- [Modelli matematici esatti](docs/mathematical_models.md)
+- [Euristiche](docs/heuristics.md)
+- [Istanze e generatore](docs/instances.md)
+- [Protocollo sperimentale](docs/experiments.md)
+- [Risultati](docs/results.md)
+- [Note di implementazione](docs/implementation_notes.md)
 - [Soluzione della toy instance](docs/toy_instance_solution.md)
-- [Euristica GRASP-VND](docs/advanced_heuristic.md)
-- [Protocollo del benchmark finale](docs/final_benchmark_protocol.md)
-- [Analisi dei risultati](docs/final_results_analysis.md)
-- [Ablation study](docs/ablation_study.md)
 
 Per i comandi disponibili:
 
 - [Guida agli script](scripts/README.md)
 - [Guida alle configurazioni](configs/README.md)
-- [Modelli matematici](models/README.md)
+- [Modelli AMPL](models/README.md)
 - [Organizzazione dei risultati](results/README.md)
 
 ## Autori
@@ -217,7 +219,7 @@ Per i comandi disponibili:
 
 ## Stato del progetto
 
-Lo sviluppo algoritmico e la campagna sperimentale sono conclusi. Le attività residue riguardano la rifinitura del repository, la generazione dei grafici finali e la preparazione delle slide.
+Lo sviluppo algoritmico e la campagna sperimentale sono conclusi. Le attività residue riguardano la pubblicazione dei risultati definitivi, la generazione dei grafici finali e la preparazione delle slide.
 
 ## Licenza
 

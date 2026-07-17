@@ -4,10 +4,20 @@ Le slide costituiscono, insieme al link GitHub, il materiale principale da conse
 
 Verranno preparate dopo:
 
-1. pulizia e stabilizzazione del repository;
+1. stabilizzazione del repository;
 2. pubblicazione dei risultati definitivi;
 3. generazione dei grafici finali;
 4. completamento della relazione di studio.
+
+## Fonti interne
+
+Le slide useranno i contenuti sintetizzati in:
+
+- [`problem.md`](../problem.md)
+- [`mathematical_models.md`](../mathematical_models.md)
+- [`heuristics.md`](../heuristics.md)
+- [`experiments.md`](../experiments.md)
+- [`results.md`](../results.md)
 
 ## Struttura prevista
 

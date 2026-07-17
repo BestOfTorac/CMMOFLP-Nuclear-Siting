@@ -1,8 +1,20 @@
 # Relazione dettagliata
 
-La relazione verrà preparata dopo la pulizia del repository e la generazione dei grafici finali.
+La relazione verrà preparata dopo la stabilizzazione del repository e la generazione dei grafici finali.
 
 Il suo obiettivo principale è aiutare gli autori a comprendere e ripassare il progetto in modo completo. Non rappresenta il principale artefatto da consegnare al docente.
+
+## Fonti interne
+
+La relazione partirà dai documenti consolidati:
+
+- [`problem.md`](../problem.md)
+- [`mathematical_models.md`](../mathematical_models.md)
+- [`heuristics.md`](../heuristics.md)
+- [`instances.md`](../instances.md)
+- [`experiments.md`](../experiments.md)
+- [`results.md`](../results.md)
+- [`implementation_notes.md`](../implementation_notes.md)
 
 ## Contenuti previsti
 

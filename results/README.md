@@ -28,6 +28,12 @@ I file in `final/raw/` sono dati sperimentali immutati:
 
 I file in `final/summary/` e `final/ablation/` sono derivati automaticamente. Non devono essere corretti manualmente.
 
+I grafici ufficiali in `plots/final/` sono generati dalle stesse tabelle versionate e possono essere ricostruiti con:
+
+```bash
+python scripts/generate_final_plots.py
+```
+
 ## Rigenerare le tabelle pubblicate
 
 ```bash

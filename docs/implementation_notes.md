@@ -62,9 +62,9 @@ max_starts_without_improvement
 
 misura gli start consecutivi che non aumentano:
 
-\[
+```math
 z(S)=\min_{j\in S}r_j.
-\]
+```
 
 Il valore del benchmark finale è 20.
 

@@ -287,17 +287,3 @@ make check
 - Ali Shalby
 
 ---
-
-## Stato del progetto
-
-La formulazione, l’implementazione algoritmica, la generazione delle istanze, la campagna sperimentale e la pubblicazione dei risultati sono concluse.
-
-Il repository contiene la versione finale e riproducibile del progetto.
-
----
-
-## Licenza
-
-Il repository non include attualmente una licenza open source.
-
-In assenza di una licenza esplicita, il codice e la documentazione non devono essere riutilizzati assumendo automaticamente diritti di copia, modifica o distribuzione.

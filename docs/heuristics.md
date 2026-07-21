@@ -6,15 +6,15 @@ Il progetto contiene una baseline costruttiva, una procedura di repair, una loca
 
 Per ogni sito candidato:
 
-\[
+```math
 r_j=\min_{i\in I} d_{ij}.
-\]
+```
 
-Per un insieme aperto \(S\):
+Per un insieme aperto $S$:
 
-\[
+```math
 z(S)=\min_{j\in S}r_j.
-\]
+```
 
 Questa quantità dipende soltanto dai siti aperti. L’assegnamento serve invece a verificare le capacità.
 
@@ -70,12 +70,12 @@ Un vicino si ottiene:
 
 Le soluzioni vengono confrontate lessicograficamente tramite:
 
-\[
+```math
 \left(
 \min_{j\in S}r_j,
 \sum_{j\in S}r_j
 \right).
-\]
+```
 
 Il primo componente è l’obiettivo reale. Il secondo è soltanto uno spareggio.
 
@@ -120,9 +120,9 @@ I siti uscenti sono scelti tra quelli meno sicuri. I siti entranti sono selezion
 
 Si definisce l’insieme dei siti critici:
 
-\[
+```math
 C(S)=\{j\in S:r_j=z(S)\}.
-\]
+```
 
 Quando più siti determinano il minimo, un singolo scambio può essere insufficiente. Il 2-swap rimuove i siti critici o li combina con i siti di sicurezza immediatamente successiva, evitando l’enumerazione completa di tutte le coppie.
 
@@ -130,17 +130,17 @@ Quando più siti determinano il minimo, un singolo scambio può essere insuffici
 
 Ordinando le sicurezze:
 
-\[
+```math
 r_{(1)}\ge r_{(2)}\ge\dots\ge r_{(|J|)},
-\]
+```
 
-aprendo esattamente \(p\) siti vale:
+aprendo esattamente $p$ siti vale:
 
-\[
+```math
 z^*\le r_{(p)}.
-\]
+```
 
-Il bound ignora le capacità e può non essere raggiungibile. Quando una soluzione ammissibile raggiunge \(r_{(p)}\), l’ottimalità è certificata.
+Il bound ignora le capacità e può non essere raggiungibile. Quando una soluzione ammissibile raggiunge $r_{(p)}$, l’ottimalità è certificata.
 
 ### Criteri di arresto
 

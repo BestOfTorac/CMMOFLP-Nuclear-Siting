@@ -14,4 +14,3 @@ La relazione ha finalità didattica e accompagna la documentazione tecnica modul
 2. studiare le sezioni 6–7 per le euristiche;
 3. leggere le sezioni 8–13 per benchmark e risultati;
 4. studiare la sezione 18 sul ruolo etico dell’ottimizzazione;
-5. ripassare le sezioni 20–22 prima dell’esposizione orale.

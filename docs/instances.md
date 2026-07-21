@@ -46,23 +46,23 @@ Le istanze vengono controllate rispetto a:
 - coordinate numeriche;
 - domande positive;
 - capacità positive;
-- numero di siti almeno pari a \(p\);
-- valore di \(p\) positivo;
+- numero di siti almeno pari a $p$;
+- valore di $p$ positivo;
 - capacità totale potenzialmente sufficiente.
 
-La condizione sulle \(p\) capacità maggiori è necessaria, ma la fattibilità a singola sorgente deve essere verificata dal solver o dal repair.
+La condizione sulle $p$ capacità maggiori è necessaria, ma la fattibilità a singola sorgente deve essere verificata dal solver o dal repair.
 
 ## Distanze
 
 Le distanze vengono calcolate in modo euclideo dalle coordinate:
 
-\[
+```math
 d_{ij}
 =
 \sqrt{
 (x_i-x_j)^2+(y_i-y_j)^2
 }.
-\]
+```
 
 ## Generatore
 
@@ -90,11 +90,11 @@ Le comunità vengono generate intorno a centri urbani con distribuzioni gaussian
 | `medium` | 1.20 |
 | `loose` | 1.50 |
 
-Il fattore viene applicato ai carichi di un insieme di \(p\) siti anchor costruito internamente.
+Il fattore viene applicato ai carichi di un insieme di $p$ siti anchor costruito internamente.
 
 ## Garanzia di fattibilità
 
-Durante la generazione viene creata una partizione delle comunità tra \(p\) siti anchor. Le capacità di questi siti vengono impostate in modo coerente con il fattore scelto.
+Durante la generazione viene creata una partizione delle comunità tra $p$ siti anchor. Le capacità di questi siti vengono impostate in modo coerente con il fattore scelto.
 
 Questo garantisce l’esistenza di almeno una soluzione ammissibile con assegnamento a singola sorgente.
 
@@ -147,9 +147,9 @@ Ogni dimensione combina:
 
 Totale:
 
-\[
+```math
 3\cdot2\cdot3\cdot5=90.
-\]
+```
 
 ## Stress test XXLarge
 

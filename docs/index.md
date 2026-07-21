@@ -38,4 +38,4 @@ La documentazione descrive lo stato finale del progetto, dalla formulazione mate
 ## Relazione e slide
 
 - [Relazione dettagliata di studio](report/README.md)
-- [Slide della presentazione](slides/README.md)
+- [Slide della presentazione](slide/Presentazione_AMOD.pptx)

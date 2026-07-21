@@ -1,6 +1,6 @@
 # Documentazione
 
-La documentazione è divisa tra una sezione principale, che descrive lo stato finale del progetto, e una sezione storica, che conserva il percorso di sviluppo e calibrazione.
+La documentazione descrive lo stato finale del progetto, dalla formulazione matematica alla valutazione sperimentale.
 
 ## Percorso consigliato
 
@@ -35,17 +35,7 @@ La documentazione è divisa tra una sezione principale, che descrive lo stato fi
 - [Modelli AMPL](../models/README.md)
 - [Risultati e output](../results/README.md)
 
-## Cronologia sperimentale
-
-I documenti relativi alle fasi pilota, alle calibrazioni e alle decisioni intermedie sono raccolti in:
-
-- [Documentazione storica](history/README.md)
-
-Questi file spiegano come si è arrivati al protocollo finale, ma non sono necessari per una prima lettura del progetto.
-
 ## Relazione e slide
 
 - [Relazione dettagliata di studio](report/README.md)
 - [Slide della presentazione](slides/README.md)
-
-Le slide e il link GitHub costituiscono il materiale principale da consegnare al docente. La relazione dettagliata verrà utilizzata dagli autori per comprendere e ripassare il progetto.

@@ -20,8 +20,7 @@ scripts/
 ├── run_greedy.py
 ├── run_local_search.py
 ├── ampl/
-├── examples/
-└── history/
+└── examples/
 ```
 
 La cartella principale contiene soltanto i comandi utili per usare, verificare e riprodurre la versione finale del progetto.
@@ -135,13 +134,8 @@ La cartella [`examples/`](examples/README.md) contiene:
 
 La cartella [`ampl/`](ampl/README.md) contiene tre file `.run` per eseguire manualmente compact e threshold sulla toy instance.
 
-## Analisi storiche
-
-La cartella [`history/`](history/README.md) conserva gli script usati nelle campagne pilota e di calibrazione. Non sono necessari per riprodurre i risultati definitivi.
-
 ## Convenzioni
 
 - eseguire i comandi dalla radice del repository;
 - non modificare manualmente i CSV grezzi;
-- usare i runner finali per nuove campagne;
-- usare gli script storici soltanto insieme alla relativa documentazione in `docs/history/`.
+- usare i runner finali per nuove campagne.

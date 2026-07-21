@@ -29,11 +29,11 @@ Serve a verificare manualmente formulazione, modelli e implementazione.
 
 Risultato noto:
 
-\[
+```math
 S^*=\{s1,s4\},
 \qquad
 z^*=18.0278.
-\]
+```
 
 ### Pilot tiny/small
 
@@ -87,9 +87,9 @@ Classi complessive: 18.
 
 Una run greedy e una run local search per istanza:
 
-\[
+```math
 90+90=180.
-\]
+```
 
 ### GRASP-VND
 
@@ -105,9 +105,9 @@ Cinque seed:
 
 Numero totale:
 
-\[
+```math
 90\cdot5=450.
-\]
+```
 
 Parametri:
 
@@ -124,9 +124,9 @@ Parametri:
 
 Una esecuzione per istanza:
 
-\[
+```math
 90.
-\]
+```
 
 Time limit: 60 secondi.
 
@@ -204,13 +204,13 @@ max_starts
 
 ### Gap euristico
 
-Per un ottimo noto \(z^*\) e una soluzione \(z_H\):
+Per un ottimo noto $z^*$ e una soluzione $z_H$:
 
-\[
+```math
 gap_H
 =
 \frac{z^*-z_H}{|z^*|}\cdot100.
-\]
+```
 
 Il gap non viene calcolato:
 

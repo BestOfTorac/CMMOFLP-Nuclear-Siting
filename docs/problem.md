@@ -2,11 +2,13 @@
 
 ## Nome adottato
 
-Il problema studiato è indicato come:
+Il problema studiato è denominato:
 
-**Capacitated Multiple Maximin Obnoxious Facility Location Problem for Nuclear Power Plant Siting**.
+> **Capacitated Multiple Maximin Obnoxious Facility Location Problem for Nuclear Power Plant Siting**
 
-Si tratta di una variante discreta e capacitata di facility location nella quale devono essere aperte più strutture considerate indesiderabili, massimizzandone la distanza minima dalle comunità.
+Si tratta di una variante discreta e capacitata di *facility location* nella quale devono essere aperte più strutture considerate indesiderabili, massimizzando la loro distanza minima dalle comunità.
+
+---
 
 ## Scenario applicativo
 
@@ -24,168 +26,271 @@ Ogni sito candidato:
 - può ospitare al massimo una centrale;
 - dispone di una capacità produttiva massima.
 
-Le centrali devono soddisfare tutta la domanda, rispettando le capacità, e devono essere collocate il più lontano possibile dalla popolazione.
+Le centrali devono soddisfare tutta la domanda energetica, rispettando le capacità disponibili, e devono essere collocate il più lontano possibile dalla popolazione.
+
+---
 
 ## Assegnamento energetico ed esposizione
 
-I due concetti sono distinti.
+I due concetti devono essere distinti.
 
-L’**assegnamento energetico** indica quale centrale soddisfa la domanda di una comunità. Serve a verificare copertura e capacità.
+L’**assegnamento energetico** indica quale centrale soddisfa la domanda di una comunità. Serve a verificare:
 
-L’**esposizione** dipende invece dalla posizione di tutte le centrali aperte. Una comunità può trovarsi vicina a una centrale anche quando riceve energia da un altro impianto. Per questo la funzione obiettivo considera ogni comunità rispetto a ogni sito aperto.
+- copertura completa della domanda;
+- compatibilità tra assegnamenti e siti aperti;
+- rispetto delle capacità produttive.
+
+L’**esposizione** dipende invece dalla posizione di **tutte le centrali aperte**.
+
+Una comunità può trovarsi vicina a una centrale anche quando riceve energia da un altro impianto. Per questo motivo la funzione obiettivo considera ogni comunità rispetto a ogni sito aperto.
+
+> **Idea chiave:** l’assegnamento determina la fattibilità energetica, mentre l’insieme dei siti aperti determina la sicurezza.
+
+---
 
 ## Insiemi
 
-- \(I\): comunità, indicizzate con \(i\);
-- \(J\): siti candidati, indicizzati con \(j\).
+| Simbolo | Descrizione |
+|---|---|
+| $I$ | insieme delle comunità, indicizzate con $i$ |
+| $J$ | insieme dei siti candidati, indicizzati con $j$ |
+
+---
 
 ## Parametri
 
-- \(p\): numero di centrali da costruire;
-- \(q_i>0\): domanda della comunità \(i\);
-- \(C_j>0\): capacità del sito \(j\);
-- \(d_{ij}\ge 0\): distanza tra comunità \(i\) e sito \(j\).
+| Simbolo | Descrizione |
+|---|---|
+| $p$ | numero di centrali da costruire |
+| $q_i>0$ | domanda energetica della comunità $i$ |
+| $C_j>0$ | capacità produttiva del sito $j$ |
+| $d_{ij}\ge 0$ | distanza tra la comunità $i$ e il sito $j$ |
 
-Per ciascun sito si definisce la sicurezza:
+### Sicurezza intrinseca di un sito
 
-\[
+Per ogni sito candidato si definisce:
+
+$$
 r_j=\min_{i\in I} d_{ij}.
-\]
+$$
 
-Il valore \(r_j\) è la distanza del sito \(j\) dalla comunità più vicina.
+Il valore $r_j$ rappresenta la distanza del sito $j$ dalla comunità più vicina.
 
-Un upper bound semplice è:
+Un upper bound valido per la funzione obiettivo è:
 
-\[
+$$
 U=\max_{j\in J} r_j.
-\]
+$$
 
-## Variabili
+---
 
-### Apertura
+## Variabili decisionali
 
-\[
+### Apertura dei siti
+
+$$
 y_j=
 \begin{cases}
-1 & \text{se il sito }j\text{ viene aperto},\\
-0 & \text{altrimenti.}
+1, & \text{se il sito } j \text{ viene aperto},\\
+0, & \text{altrimenti.}
 \end{cases}
-\]
+$$
 
-### Assegnamento
+### Assegnamento delle comunità
 
-\[
+$$
 x_{ij}=
 \begin{cases}
-1 & \text{se la comunità }i\text{ è servita dal sito }j,\\
-0 & \text{altrimenti.}
+1, & \text{se la comunità } i \text{ è servita dal sito } j,\\
+0, & \text{altrimenti.}
 \end{cases}
-\]
+$$
 
-### Distanza minima
+### Distanza minima garantita
 
-\[
-z\ge 0
-\]
+$$
+z\ge 0.
+$$
 
-rappresenta la distanza minima garantita tra le comunità e le centrali aperte.
+La variabile $z$ rappresenta la distanza minima garantita tra le comunità e le centrali aperte.
+
+---
 
 ## Funzione obiettivo
 
-Dato l’insieme dei siti aperti \(S\subseteq J\):
+Sia $S\subseteq J$ l’insieme dei siti aperti.
 
-\[
+La sicurezza della soluzione è:
+
+$$
 z(S)
 =
 \min_{\substack{i\in I\\j\in S}} d_{ij}
 =
 \min_{j\in S} r_j.
-\]
+$$
 
-L’obiettivo è:
+L’obiettivo è quindi:
 
-\[
+$$
 \max z.
-\]
+$$
+
+Il modello massimizza la sicurezza del caso peggiore, cioè la distanza minima tra una comunità e una qualunque centrale aperta.
+
+---
 
 ## Formulazione compatta
 
-\[
+La formulazione è una **Programmazione Lineare Intera Mista**, perché $x_{ij}$ e $y_j$ sono variabili binarie, mentre $z$ è continua.
+
+### Funzione obiettivo
+
+$$
 \max \quad z
-\]
+$$
 
-soggetto a:
+### Vincoli
 
-\[
-\sum_{j\in J} y_j=p
-\]
+#### Numero di centrali
 
-\[
+$$
+\sum_{j\in J} y_j=p.
+$$
+
+#### Assegnamento completo
+
+$$
 \sum_{j\in J} x_{ij}=1
-\qquad \forall i\in I
-\]
+\qquad
+\forall i\in I.
+$$
 
-\[
+#### Collegamento tra assegnamento e apertura
+
+$$
 x_{ij}\le y_j
-\qquad \forall i\in I,\ \forall j\in J
-\]
+\qquad
+\forall i\in I,\ \forall j\in J.
+$$
 
-\[
+#### Capacità produttiva
+
+$$
 \sum_{i\in I} q_i x_{ij}\le C_j y_j
-\qquad \forall j\in J
-\]
+\qquad
+\forall j\in J.
+$$
 
-\[
+#### Sicurezza dei siti aperti
+
+$$
 z\le r_j+U(1-y_j)
-\qquad \forall j\in J
-\]
+\qquad
+\forall j\in J.
+$$
 
-\[
-0\le z\le U
-\]
+#### Limiti sulla funzione obiettivo
 
-\[
+$$
+0\le z\le U.
+$$
+
+#### Dominio delle variabili
+
+$$
 x_{ij}\in\{0,1\}
-\qquad \forall i\in I,\ \forall j\in J
-\]
+\qquad
+\forall i\in I,\ \forall j\in J,
+$$
 
-\[
+$$
 y_j\in\{0,1\}
-\qquad \forall j\in J.
-\]
+\qquad
+\forall j\in J.
+$$
+
+---
 
 ## Interpretazione dei vincoli
 
-- \(\sum_j y_j=p\): vengono costruite esattamente \(p\) centrali;
-- \(\sum_j x_{ij}=1\): ogni comunità è assegnata a una sola centrale;
-- \(x_{ij}\le y_j\): un assegnamento è possibile soltanto verso un sito aperto;
-- \(\sum_i q_i x_{ij}\le C_jy_j\): la domanda assegnata non supera la capacità;
-- \(z\le r_j+U(1-y_j)\): ogni sito aperto impone \(z\le r_j\).
+| Vincolo | Significato |
+|---|---|
+| $\sum_{j\in J}y_j=p$ | vengono costruite esattamente $p$ centrali |
+| $\sum_{j\in J}x_{ij}=1$ | ogni comunità è assegnata a una sola centrale |
+| $x_{ij}\le y_j$ | una comunità può essere assegnata soltanto a un sito aperto |
+| $\sum_{i\in I}q_ix_{ij}\le C_jy_j$ | la domanda assegnata non supera la capacità del sito |
+| $z\le r_j+U(1-y_j)$ | ogni sito aperto impone $z\le r_j$ |
+
+Quando $y_j=1$, il vincolo di sicurezza diventa:
+
+$$
+z\le r_j.
+$$
+
+Quando $y_j=0$, il termine $U(1-y_j)$ rende il vincolo non restrittivo.
+
+Di conseguenza, all’ottimo:
+
+$$
+z=\min_{j:y_j=1}r_j.
+$$
+
+---
 
 ## Formulazione equivalente sulle distanze
 
-Senza pre-calcolare \(r_j\), si può usare:
+Senza pre-calcolare $r_j$, è possibile utilizzare direttamente le distanze:
 
-\[
+$$
 z\le d_{ij}+U(1-y_j)
-\qquad \forall i\in I,\ \forall j\in J.
-\]
+\qquad
+\forall i\in I,\ \forall j\in J.
+$$
 
-Questa formulazione è equivalente, ma introduce \(|I||J|\) vincoli di sicurezza. La formulazione tramite \(r_j\) utilizza soltanto \(|J|\) vincoli ed è quindi più compatta.
+Le due formulazioni sono equivalenti dal punto di vista della funzione obiettivo.
+
+La formulazione diretta introduce:
+
+$$
+|I||J|
+$$
+
+vincoli di sicurezza.
+
+La formulazione basata su $r_j$ utilizza invece soltanto:
+
+$$
+|J|
+$$
+
+vincoli di sicurezza ed è quindi più compatta.
+
+---
 
 ## Fattibilità
 
-Una condizione necessaria è:
+Una condizione necessaria per la fattibilità è:
 
-\[
+$$
 \sum_{j\in J_p^{\max}} C_j
 \ge
 \sum_{i\in I} q_i,
-\]
+$$
 
-dove \(J_p^{\max}\) contiene i \(p\) siti di capacità maggiore.
+dove $J_p^{\max}$ contiene i $p$ siti con capacità maggiore.
 
-Non è una condizione sufficiente: con assegnamento a singola sorgente, le singole domande potrebbero non essere distribuibili senza superare una capacità. La fattibilità effettiva deve essere verificata dal modello o da una procedura di assegnamento.
+La condizione non è sufficiente.
+
+Poiché l’assegnamento è a singola sorgente, ogni comunità deve essere servita interamente da una sola centrale. Le singole domande potrebbero quindi non essere distribuibili tra i siti scelti, anche quando la capacità complessiva è sufficiente.
+
+La fattibilità effettiva deve essere verificata:
+
+- dal modello esatto;
+- dalla procedura di assegnamento;
+- oppure dal repair utilizzato dalle euristiche.
+
+---
 
 ## Assunzioni
 
@@ -197,24 +302,20 @@ Il progetto considera:
 - domanda interamente soddisfatta;
 - dati deterministici;
 - distanze euclidee;
-- un singolo periodo;
-- assenza di costi di costruzione e trasmissione;
-- assenza di vincoli espliciti tra centrali.
+- un singolo periodo temporale;
+- assenza di costi di costruzione;
+- assenza di costi di trasmissione;
+- assenza di vincoli espliciti di separazione tra centrali.
 
-Il nuclear siting costituisce lo scenario applicativo del modello. Le istanze sperimentali sono sintetiche e non rappresentano un piano reale di localizzazione.
+Il *nuclear siting* costituisce lo scenario applicativo del modello.
+
+Le istanze sperimentali sono sintetiche e non rappresentano un piano reale di localizzazione di centrali nucleari.
+
+---
 
 ## Toy instance
 
-Per `instances/test/toy_instance_01.json`:
+Per l’istanza:
 
-\[
-S^*=\{s1,s4\}
-\]
-
-e:
-
-\[
-z^*=18.0278.
-\]
-
-La verifica completa è disponibile in [toy_instance_solution.md](toy_instance_solution.md).
+```text
+instances/test/toy_instance_01.json

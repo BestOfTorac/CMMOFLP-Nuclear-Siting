@@ -122,13 +122,9 @@ Sia $S\subseteq J$ l’insieme dei siti aperti.
 
 La sicurezza della soluzione è:
 
-$$
-z(S)
-=
-\min_{\substack{i\in I\\j\in S}} d_{ij}
-=
-\min_{j\in S} r_j.
-$$
+```math
+z(S)=\min_{\substack{i\in I \\ j\in S}} d_{ij}=\min_{j\in S} r_j.
+```
 
 L’obiettivo è quindi:
 
